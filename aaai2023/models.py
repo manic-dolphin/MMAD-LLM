@@ -56,7 +56,7 @@ if __name__ == '__main__':
     print("************************")
     messages = [
         {"role": "user", "content": 
-         "please prove that: please prove that: the equality $\\frac{x}{1+x}\\leq{\\ln(1+x)}\\leq{x}$ (where $x\\geq0$) holds if and only if $x=0$."
+         "please prove that: suppose that $f$ and $g$ are real functions on $\\mathbb{R}$ and $f(x+y)+f(x-y)=2f(y)g(y)$, where $\\forall{x,y}\\in \\mathbb{R}$, is on $\\mathbb{R}$ not identically equal to 0 but bounded. Prove that $\\forall{y}\\in\\mathbb{R}$, $\\left|g(y)\\right|\\leq 1$."
         }
     ]
     output = query_a_chat_completion("gpt-3.5-turbo", messages=messages)

@@ -22,5 +22,47 @@
         "score": 0,
         "source": "Typical Problems and Methods in Mathematical Analysis page5",
         "output": ""
+    },
+    {
+        "prompt": "please prove that: suppose that $f$ and $g$ are real functions on $\\mathbb{R}$ and $f(x+y)+f(x-y)=2f(y)g(y)$, where $\\forall{x,y}\\in \\mathbb{R}$, is on $\\mathbb{R}$ not identically equal to 0 but bounded. Prove that $\\forall{y}\\in\\mathbb{R}$, $\\left|g(y)\\right|\\leq 1$.",
+        "score": 0,
+        "source": "Typical Problems and Methods in Mathematical Analysis page",
+        "output": ""
+    },
+    {
+        "prompt": "please prove that: ",
+        "score": 0,
+        "source": "Typical Problems and Methods in Mathematical Analysis page",
+        "output": ""
+    },
+    {
+        "prompt": "please prove that: ",
+        "score": 0,
+        "source": "Typical Problems and Methods in Mathematical Analysis page",
+        "output": ""
+    },
+    {
+        "prompt": "please prove that: ",
+        "score": 0,
+        "source": "Typical Problems and Methods in Mathematical Analysis page",
+        "output": ""
+    },
+    {
+        "prompt": "please prove that: ",
+        "score": 0,
+        "source": "Typical Problems and Methods in Mathematical Analysis page",
+        "output": ""
+    },
+    {
+        "prompt": "please prove that: ",
+        "score": 0,
+        "source": "Typical Problems and Methods in Mathematical Analysis page",
+        "output": ""
+    },
+    {
+        "prompt": "please prove that: ",
+        "score": 0,
+        "source": "Typical Problems and Methods in Mathematical Analysis page",
+        "output": ""
     }
 ]
