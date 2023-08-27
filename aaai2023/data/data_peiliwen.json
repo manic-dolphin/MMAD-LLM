@@ -1,0 +1,26 @@
+[
+    {
+        "prompt": "If $f$ is an odd function on the interval$(-l, l)$ and has an inverse function $f^{-1}$, then prove that $f^{-1}$ is also an odd function.",
+        "score": 0,
+        "source": "Typical Problems and Methods in Mathematical Analysis page2",
+        "output": ""
+    },
+    {
+        "prompt": "please prove that: any function $f(x)$ defined on a symmetric interval$(-l,l)$ can always be expressed as the sum of an even function $H(x)$ and an odd function $G(x)$, and this representation is unique.",
+        "score": 0,
+        "source": "Typical Problems and Methods in Mathematical Analysis page2",
+        "output": ""
+    },
+    {
+        "prompt": "please prove that: if $ f(x)$ is a bounded real function on $\\mathbb{R}$, and there exists $h$ such that $f(x + h) = f(x)$ for all $x$ where $h$ is a positive number, then $h$ must be a period of the function $f$.",
+        "score": 0,
+        "source": "Typical Problems and Methods in Mathematical Analysis page3",
+        "output": ""
+    },
+    {
+        "prompt": "please prove that: the equality $\\frac{x}{1+x}\\leq{\\ln(1+x)}\\leq{x}$ (where $x\\geq0$) holds if and only if $x=0$.",
+        "score": 0,
+        "source": "Typical Problems and Methods in Mathematical Analysis page5",
+        "output": ""
+    }
+]
