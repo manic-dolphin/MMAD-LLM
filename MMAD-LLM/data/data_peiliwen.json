@@ -60,15 +60,15 @@
         "output": ""
     },
     {
-        "prompt": "please prove that: ",
+        "prompt": "please prove that: suppose that the sequence $\\{x_n\\}$ is convergent, and for all $n = 1, 2, \\ldots$, we find $x_n > 0$. Prove that $\\lim_{n\to \\infty}{\\sqrt[n]{x_{1}x_{2} \\cdots x_{n}}} = \\lim_{n\\to\\infty}x_n$.",
         "score": 0,
-        "source": "Typical Problems and Methods in Mathematical Analysis page",
+        "source": "Typical Problems and Methods in Mathematical Analysis page27",
         "output": ""
     },
     {
-        "prompt": "please prove that: ",
+        "prompt": "please prove that: if $\\lim_{n\\to\\infty}x_{n}=a,\\lim_{n\\to\\infty}y_{n}=b$, prove that $\\lim_{n\\to\\infty}{\\frac{x_{1}y_{n}+x_{2}y_{n-1}+\\ldots+x_{n}y_{1}}{n}}=ab$.",
         "score": 0,
-        "source": "Typical Problems and Methods in Mathematical Analysis page",
+        "source": "Typical Problems and Methods in Mathematical Analysis page28",
         "output": ""
     },
     {
