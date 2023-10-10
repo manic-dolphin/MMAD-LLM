@@ -174,6 +174,42 @@
         "output": ""
     },
     {
+        "prompt": "please prove that: Suppose that $f:[0,1]\\to [0,1]$ is a continuous function and $f(0)=0,f(1)=1,f(f(x))=x$.Prove that $f(x)=x$.",
+        "score": 0,
+        "source": "Typical Problems and Methods in Mathematical Analysis page112",
+        "output": ""
+    },
+    {
+        "prompt": "please prove that: Suppose that $f:[a,b]\\to [a,b]$ is a continuous function. Prove that there exists $\\psi\\in[a,b]$ such that $f(\\psi)=\\psi$.",
+        "score": 0,
+        "source": "Typical Problems and Methods in Mathematical Analysis page113",
+        "output": ""
+    },
+    {
+        "prompt": "please prove that: Suppose that $f:[0,1]\\to R$ is a monotonic increasing function and $f([0,1])$ is a close set. Prove that $f$ is continuous on $[0,1]$.",
+        "score": 0,
+        "source": "Typical Problems and Methods in Mathematical Analysis page114",
+        "output": ""
+    },
+    {
+        "prompt": "please prove that: Suppose that $f(x)$ is a continuous function on $(a,b)$ and $\\lim_{x\\to a^{+}}f(x)=-\\infty$,$\\lim_{x\\to h^{-}}f(x)=-\\infty$. Prove that $f(x)$ has a maximum on $(a,b)$.",
+        "score": 0,
+        "source": "Typical Problems and Methods in Mathematical Analysis page120",
+        "output": ""
+    },
+    {
+        "prompt": "please prove that: Suppose that $f,g$ are continuous functions on $[a,b]$,$f$ is  monotonic increasing or decreasing and there exist $x_{n}\\in [a,b]$ such that $g(x_n)=f(x_{n+1}) (n=1,2,\\ldots)$.Prove that there exists $x_{0}\\in [a,b]$ such that $g(x_0)=f(x_0)$.",
+        "score": 0,
+        "source": "Typical Problems and Methods in Mathematical Analysis page122",
+        "output": ""
+    },
+    {
+        "prompt": "please prove that: ",
+        "score": 0,
+        "source": "Typical Problems and Methods in Mathematical Analysis page",
+        "output": ""
+    },
+    {
         "prompt": "please prove that: suppose that $f(x^2)=f(x)$ for any $x\\in (-\\infty,+\\infty)$ and $f(x)$ is continuous at $x=1,x=0$.Prove that $f(x)$ is a constant on $(-\\infty,+\\infty)$.",
         "score": 0,
         "source": "Typical Problems and Methods in Mathematical Analysis page122",
