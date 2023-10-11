@@ -22,19 +22,24 @@ def divide_process(problem: str,
         temperature=temperature
     )
 
-    return response.choices[0].message.content
+    proof_process = response.choices[0].message.content
+    proof_process = proof_process.split("Step")
+    for i in range(len(proof_process)):
+        proof_process[i] = proof_process[i].replace("\n", "")
+
+    return proof_process
+
+class GA():
+    def __init__(self) -> None:
+        pass
 
 if __name__ == '__main__':
     # model = "gpt-3.5-turbo"
     # model = "gpt-4"
     model = "gpt-3.5-turbo"
     # problem = "given that the functions $f(x)$ and $g(x)$ are continuous. Prove that $\\phi(x)=\\min\\{f(x),g(x)\\}$,$\\psi(x)=\\{f(x),g(x)\\}$ are also continuous."
-    # problem = "10 + 1 = ?"
-    problem = "please prove that: \\lim_{x to \\infty} \\sqrt[n]{n} = 1."
+    problem = "10 + 1 = ?"
+    # problem = "please prove that: \\lim_{x to \\infty} \\sqrt[n]{n} = 1."
     print("-----------------------------------------")
-    reponse = divide_process(problem, model)
-    # print(divide_process(problem, model))
-    print(reponse)
-    divided_response = reponse.split("Step")
+    divided_response = divide_process(problem, model)
     print(divided_response)
-    # print(reponse.type())
