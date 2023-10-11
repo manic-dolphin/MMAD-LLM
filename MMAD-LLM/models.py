@@ -1,9 +1,9 @@
 import openai
 import torch
 from prompts import *
+from utils import config
 
-oai_key = ''
-openai.api_key = oai_key
+openai.api_key = config.OAI_KEY
 model = "text-davinci-003"
 # MAX_TOKENS_PER_GENERATION = 1024
 SAMPLING_TEMPERATURE = 0.0
@@ -54,7 +54,7 @@ if __name__ == '__main__':
     print("************************")
     messages = [
         {"role": "user", "content": 
-         "please prove that: suppose that $\\lim_{n\to\\infty}x_{n}=a$, prove that $\\lim_{n\\to \\infty}\\sqrt[3]{x_{n}}=\\sqrt[3]{a}$."
+         "hello"
         }
     ]
     output = query_a_chat_completion("gpt-3.5-turbo", messages=messages)

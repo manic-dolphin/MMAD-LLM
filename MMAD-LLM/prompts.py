@@ -1,9 +1,9 @@
 import openai
 import re
 import torch
+from utils import config
 
-oai_key = ''
-openai.api_key = oai_key
+openai.api_key = config.OAI_KEY
 MAX_TOKENS_PER_GENERATION = 1024
 SAMPLING_TEMPERATURE = 0.0
 
