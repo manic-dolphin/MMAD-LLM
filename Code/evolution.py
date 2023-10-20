@@ -2,8 +2,11 @@ from utils import config
 import openai
 import torch
 import time
+import tqdm
+import re
 
 openai.api_key = config.OAI_KEY
+# openai.api_base = config.API_BASE
 
 def divide_process(problem: str,
                    model: str,
@@ -21,7 +24,7 @@ def divide_process(problem: str,
         model=model,
         messages=messages,
         # max_tokens=768,
-        request_timeout=1200,
+        # request_timeout=1200,
         temperature=temperature
     )
 
@@ -93,8 +96,11 @@ class GA():
                     )
 
         fittness_scores = fittness_scores.choices[0].message.content
+        fittness_scores = re.findall(r"\d+\.?\d*", fittness_scores)
 
-        return torch.softmax(torch.tensor([float(score.strip()) for score in fittness_scores.split(",")]), dim=0)
+        # return torch.softmax(torch.tensor([float(score.strip()) for score in fittness_scores.split(",")]), dim=0)
+        return torch.softmax(torch.tensor([float(score) for score in fittness_scores]), dim=0)
+
     
     def crossover(self,
                   problem:str,
@@ -184,14 +190,19 @@ class GA():
             
             # evolution
             for j in range(evolution_steps):
+                print(f"evolution step:{j + 1}")
+                print(f"population: {populations}")
                 # compute the fittness scores
+                time.sleep(20)
                 fittness_scores = self.compute_fittness_score(model,
                                                             populations,
                                                             problem)
-                
+                print(fittness_scores)
                 # roulette wheel selection rule 
-                probs = fittness_scores.copy()
+                probs = fittness_scores
                 samples = torch.multinomial(probs, population_numbers, replacement=True)
+                print(samples)
+                assert len(samples) == len(populations)
                 selected_populations = [populations[i] for i in samples]
                 assert len(selected_populations) == population_numbers
 
@@ -201,6 +212,7 @@ class GA():
                     sampled_indices = torch.randint(low=0, high=population_numbers, size=(2,))
                     parent_1 = selected_populations[sampled_indices[0]]
                     parent_2 = selected_populations[sampled_indices[1]]
+                    time.sleep(20)
                     # crossover process
                     new_step = self.crossover(problem,
                                               previsou_steps,
@@ -209,6 +221,7 @@ class GA():
                                               model=model)
                     # mutation process
                     random_number = torch.rand(1)
+                    time.sleep(20)
                     if random_number <= mutation_prob:
                         new_step = self.mutation(problem,
                                                 previsou_steps,
@@ -222,6 +235,8 @@ class GA():
                                                                 problem)
             optimal_step = populations[torch.argmax(final_fittness_scores)]
             previsou_steps.append(optimal_step)
+            print(f"current optimal step: {optimal_step}")
+            print("--------------------------------------------------------------")
 
         return previsou_steps
 
@@ -244,7 +259,7 @@ if __name__ == '__main__':
         such that for all \(n > N\), \(\left|\sqrt[n]{n} - 1\right| < \epsilon\).""",
         """Step 2: Take the Natural Logarithm
         Let's consider the natural logarithm of both sides: \(\ln\left(\sqrt[n]{n}\right) = \frac{1}{n} \ln(n)\).""",
-        """Step 3:** Use L'Hôpital's Rule
+        """Step 3: Use L'Hôpital's Rule
         We can now apply L'Hôpital's Rule to evaluate the limit:
         \[
         \lim_{n \to \infty} \frac{1}{n} \ln(n). 
@@ -252,7 +267,7 @@ if __name__ == '__main__':
         """Step 4: Evaluate the Limit
         The limit \(\lim_{n \to \infty} \frac{1}{n} \ln(n)\) is of the form \(\frac{\infty}{\infty}\), 
         and we can apply L'Hôpital's Rule to find that it equals 0. """,
-        """Step 5:** Revert to the Original Limit
+        """Step 5: Revert to the Original Limit
         Since \(\lim_{n \to \infty} \frac{1}{n} \ln(n) = 0\), we can conclude that \(\lim_{n \to \infty} \sqrt[n]{n} = 1\). """,
         """Step 6: Conclusion
         Therefore, we have successfully proven that \(\lim_{n \to \infty} \sqrt[n]{n} = 1\). This completes the proof."""]
