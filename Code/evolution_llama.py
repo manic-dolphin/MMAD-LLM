@@ -49,7 +49,6 @@ class GA_LLAMA():
                  tokenizer_path: str,
                  max_seq_len: int,
                  max_batch_size: int,
-                #  nproc_per_node: int,
                  model_parallel_size: Optional[int] = None,
                  top_p: float = 0.9,
                  initialize_max_temperature: float = 1.0
