@@ -4,9 +4,11 @@ import torch
 import time
 import tqdm
 import re
+import logging
 
 openai.api_key = config.OAI_KEY
-# openai.api_base = config.API_BASE
+openai.api_base = config.OAI_BASE
+logging.basicConfig(filename="test.log", filemode='a', level=logging.INFO)
 
 def divide_process(problem: str,
                    model: str,
@@ -36,20 +38,23 @@ def divide_process(problem: str,
     return proof_process
 
 class GA():
-    def __init__(self) -> None:
-        pass
+    def __init__(self, population_numbers, evolution_steps, max_length) -> None:
+        self.population_numbers = population_numbers
+        self.evolution_steps = evolution_steps
+        self.max_length = max_length
 
     def initialize_population(self, 
                               one_step_prompt,
                               model,
                               n: int,
-                              prompt="Make a varient of the following prompt"
+                              max_temperature=1.0,
+                              prompt="Make a varient of the following prompt, the difference between the newly generated prompts and the original prompts should not be too significant."
                               ) -> list:
         # tempratures = torch.linspace()
         # assert model in ["gpt-3.5-turbo", "gpt-3.5-turbo-16k", "gpt-4"]
-        m = torch.distributions.Uniform(0.0, 2.0)
+        prompt += f" and the new prompt's length can not exceed to the original prompt too much."
+        m = torch.distributions.Uniform(0.0, max_temperature)
         temperatures = torch.tensor([m.sample() for i in range(n)])
-        # print(temperatures)
         populattions = []
         messages = [
             {
@@ -57,14 +62,13 @@ class GA():
                 "content": prompt + one_step_prompt
             }
         ]
-        for i in range(len(temperatures)):
+        for i in range(n):
                 new_prompt = openai.ChatCompletion.create(
                     model=model,
                     messages=messages,
                     max_tokens=128,
                     temperature=float(temperatures[i])
                     )
-                # print(new_prompt)
                 populattions.append(new_prompt.choices[0].message.content)
                 time.sleep(30)
 
@@ -75,11 +79,12 @@ class GA():
                                populations:list,
                                problem:str) -> list:
         
+        population_numbers = self.population_numbers
         prompt = """Give a thorough consideration to this proof problem and, 
          in accordance with the rules of genetic algorithms, assign scores to each prompt in the following populations' list. 
          Each prompt represents a step in the proof process, and the scores should range from 0 to 1.
          Just provide a rating and return it in the form of a string, for example: "0.4, 0.8, 0.9,...,0.4".
-         Here is the proof problem: """ + problem + " . and here is the popupations: " + str(populations)
+         Here is the proof problem: """ + problem + " . and here is the populations list: " + str(populations) + f" We have {population_numbers} populations, so you need to return {population_numbers} scores in total."
 
         messages = [
             {
@@ -97,8 +102,18 @@ class GA():
 
         fittness_scores = fittness_scores.choices[0].message.content
         fittness_scores = re.findall(r"\d+\.?\d*", fittness_scores)
+        time.sleep(20)
+        # TODO
+        while len(fittness_scores) != population_numbers:
+                fittness_scores = openai.ChatCompletion.create(
+                    model=model,
+                    messages=messages,
+                    max_tokens=128,
+                    temperature=0.0
+                    )
+                fittness_scores = fittness_scores.choices[0].message.content
+                fittness_scores = re.findall(r"\d+\.?\d*", fittness_scores)
 
-        # return torch.softmax(torch.tensor([float(score.strip()) for score in fittness_scores.split(",")]), dim=0)
         return torch.softmax(torch.tensor([float(score) for score in fittness_scores]), dim=0)
 
     
@@ -126,7 +141,7 @@ class GA():
         new_step = openai.ChatCompletion.create(
                     model=model,
                     messages=messages,
-                    max_tokens=128,
+                    max_tokens=96,
                     temperature=0.0
                     )
         
@@ -155,12 +170,12 @@ class GA():
                 "content": prompt
             }
         ]
-        m = torch.distributions.Uniform(1.0, 2.0)
+        m = torch.distributions.Uniform(1.0, 1.5)
         temperature = m.sample()
         new_step = openai.ChatCompletion.create(
                     model=model,
                     messages=messages,
-                    max_tokens=180,
+                    max_tokens=96,
                     temperature=float(temperature)
                     )
         
@@ -169,9 +184,8 @@ class GA():
     def evolution(self,
                   problem:str,
                   model="gpt-3.5-turbo",
-                  population_numbers=5,
-                  evolution_steps=5,
-                #   crossover_prob=0.75,
+                #   population_numbers=self.population_numbers,
+                #   evolution_steps=,
                   mutation_prob=0.90,
                   debug=False):
         if debug == True:
@@ -181,30 +195,37 @@ class GA():
         steps = len(divided_process)
         assert steps > 0
         previsou_steps = []
+        population_numbers = self.population_numbers
+        evolution_steps = self.evolution_steps
+        logging.info("##################################")
+        logging.info(f"Begin to generate new solution...")
 
         for i in range(steps):
             # initialize the population for each step
             populations = self.initialize_population(divided_process[i],
                                                      model,
                                                      population_numbers)
-            
+            logging.info(f"No {i + 1} proof step.")
             # evolution
             for j in range(evolution_steps):
-                print(f"evolution step:{j + 1}")
-                print(f"population: {populations}")
+                # print(f"evolution step:{j + 1}")
+                # print(f"population: {populations}")
+                logging.info(f"evolution step:{j + 1}")
+                logging.info(f"current population: {populations}")
                 # compute the fittness scores
                 time.sleep(20)
                 fittness_scores = self.compute_fittness_score(model,
                                                             populations,
                                                             problem)
-                print(fittness_scores)
+                # print(fittness_scores)
+                logging.info(f"fittness scores: {fittness_scores}")
                 # roulette wheel selection rule 
                 probs = fittness_scores
                 samples = torch.multinomial(probs, population_numbers, replacement=True)
-                print(samples)
+                logging.info(f"sample index: {samples}")
+                # BUG
                 assert len(samples) == len(populations)
                 selected_populations = [populations[i] for i in samples]
-                assert len(selected_populations) == population_numbers
 
                 new_populations = []
                 for k in range(population_numbers):
@@ -235,8 +256,13 @@ class GA():
                                                                 problem)
             optimal_step = populations[torch.argmax(final_fittness_scores)]
             previsou_steps.append(optimal_step)
-            print(f"current optimal step: {optimal_step}")
-            print("--------------------------------------------------------------")
+            # print(f"optimal solution for current step: {optimal_step}")
+            # print("--------------------------------------------------------------")
+            logging.info(f"optimal solution for current step: {optimal_step}")
+            logging.info("--------------------------------------------------------------")
+
+        logging.info(f"Optimized solutions: {previsou_steps}")
+        logging.info("Complete!")
 
         return previsou_steps
 
@@ -247,11 +273,10 @@ if __name__ == '__main__':
     # problem = "given that the functions $f(x)$ and $g(x)$ are continuous. Prove that $\\phi(x)=\\min\\{f(x),g(x)\\}$,$\\psi(x)=\\{f(x),g(x)\\}$ are also continuous."
     # problem = "10 + 1 = ?"
     problem = "please prove that: \\lim_{x to \\infty} \\sqrt[n]{n} = 1."
-    print("-----------------------------------------")
     # divided_response = divide_process(problem, model)
     # ['', ' 1: Rewrite the expression as a limit statement: \\lim_{n \\to \\infty} \\sqrt[n]{n} = 1.This step is necessary to clearly indicate that we are taking the limit as n approaches infinity.']
     # print(divided_response)
-    ga = GA()
+    ga = GA(3, 3, 128)
     # print(ga.initialize_population("Rewrite the expression as \\lim_{x \\to \\infty} n^{\\frac{1}{n}} = 1.", "gpt-3.5-turbo", 5))
     EXAMPLE = ["Certainly, let's prove that \(\lim_{n \to \infty} \sqrt[n]{n} = 1\).",
         """Step 1: Definition of the Limit
@@ -276,9 +301,9 @@ if __name__ == '__main__':
                            'Rewrite the limit expression as \\(\\lim_{n \\to \\infty} n^{\\frac{1}{n}} = 1\\)', 
                            'Prove that as \\(n\\) tends to infinity, the sequence \\(a_n = nth\\) converges to \\(L\\) where \\(L\\) is given by \\(\\lim_{n \\to \\infty} (1 + h)^{\\frac{1}{h}}\\) for every \\(h > 0\\).', 
                            'Prove that as $n$ approaches infinity, the sequence $\\sqrt[n]{n}$ has a limit equal to 1.']
-    print(ga.compute_fittness_score("gpt-3.5-turbo", example_populations, problem))
-    print(example_populations[1])
-    print(example_populations[2])
+    # print(ga.compute_fittness_score("gpt-3.5-turbo", example_populations, problem))
+    # print(example_populations[1])
+    # print(example_populations[2])
     print("---------------------------------------------")
     print(ga.evolution(problem, "gpt-3.5-turbo", debug=True))
     print("---------------------------------------------")
