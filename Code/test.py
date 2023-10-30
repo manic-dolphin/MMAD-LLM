@@ -1,6 +1,8 @@
 import pandas as pd
 import json
 import torch
+import re
+import replicate
 
 if __name__ == '__main__':
     # file = json.load("./aaai2023/data/data_mathematical_analysis.json")

@@ -20,6 +20,7 @@ def generate(model, prompt):
         )
     return completion.choices[0].text
 
+# gpt api
 def query_a_chat_completion(model, messages):
     assert model in ["gpt-3.5-turbo", "gpt-4"]
     completion = openai.ChatCompletion.create(
@@ -60,5 +61,3 @@ if __name__ == '__main__':
     output = query_a_chat_completion("gpt-3.5-turbo", messages=messages)
     print(output)
     print("************************")
-    # output2 = solve_with_theorems("gpt-3.5-turbo", messages=messages)[0]
-    # print(output2)

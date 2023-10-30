@@ -1,15 +1,17 @@
-from utils import config
+from utils import config, tools
 import openai
 import torch
 import time
 import tqdm
 import re
 import logging
-from models import *
+from llama2.llama import Llama
+from typing import Optional
 
-openai.api_key = config.OAI_KEY
-openai.api_base = config.OAI_BASE
-logging.basicConfig(filename="test.log", filemode='a', level=logging.INFO)
+logging.basicConfig(filename="test.log", 
+                    filemode='a',
+                    format='%(message)s',
+                    level=logging.INFO)
 
 def divide_process(problem: str,
                    model: str,
@@ -38,40 +40,61 @@ def divide_process(problem: str,
 
     return proof_process
 
-class GA():
-    def __init__(self, population_numbers, evolution_steps, max_length) -> None:
+class GA_LLAMA():
+    def __init__(self, 
+                 population_numbers: int, 
+                 evolution_steps: int, 
+                 max_length: int,
+                 ckpt_dir: str,
+                 tokenizer_path: str,
+                 max_seq_len: int,
+                 max_batch_size: int,
+                #  nproc_per_node: int,
+                 model_parallel_size: Optional[int] = None,
+                 top_p: float = 0.9,
+                 initialize_max_temperature: float = 1.0
+                 ):
         self.population_numbers = population_numbers
         self.evolution_steps = evolution_steps
         self.max_length = max_length
+        self.generator = Llama.build(
+            ckpt_dir=ckpt_dir,
+            tokenizer_path=tokenizer_path,
+            max_seq_len=max_seq_len,
+            max_batch_size=max_batch_size,
+            # nproc_per_node=nproc_per_node
+        )
+        self.top_p = top_p
+        self.initialize_max_temperature = initialize_max_temperature
 
     def initialize_population(self, 
                               one_step_prompt,
-                              model,
-                              n: int,
-                              max_temperature=1.0,
+                            #   model,
+                            #   n: int,
+                            #   max_temperature=1.0,
                               prompt="Make a varient of the following prompt, the difference between the newly generated prompts and the original prompts should not be too significant."
                               ) -> list:
         # tempratures = torch.linspace()
         # assert model in ["gpt-3.5-turbo", "gpt-3.5-turbo-16k", "gpt-4"]
         prompt += f" and the new prompt's length can not exceed to the original prompt too much."
-        m = torch.distributions.Uniform(0.0, max_temperature)
+        m = torch.distributions.Uniform(0.0, self.initialize_max_temperature)
+        n = self.population_numbers
         temperatures = torch.tensor([m.sample() for i in range(n)])
         populattions = []
         messages = [
-            {
+            [{
                 "role": "user",
                 "content": prompt + one_step_prompt
-            }
+            }]
         ]
         for i in range(n):
-                new_prompt = openai.ChatCompletion.create(
-                    model=model,
-                    messages=messages,
-                    max_tokens=128,
-                    temperature=float(temperatures[i])
+                new_solution = self.generator.chat_completion(
+                    dialogs=messages,
+                    max_gen_len=128,
+                    temperature=float(temperatures[i]),
+                    top_p=self.top_p
                     )
-                populattions.append(new_prompt.choices[0].message.content)
-                time.sleep(30)
+                populattions.append(new_solution[0]['generation']['content'])
 
         return populattions
     
@@ -277,7 +300,16 @@ if __name__ == '__main__':
     # divided_response = divide_process(problem, model)
     # ['', ' 1: Rewrite the expression as a limit statement: \\lim_{n \\to \\infty} \\sqrt[n]{n} = 1.This step is necessary to clearly indicate that we are taking the limit as n approaches infinity.']
     # print(divided_response)
-    ga = GA(3, 3, 128)
+    ga_llama = GA_LLAMA(
+        population_numbers=3,
+        evolution_steps=3,
+        max_length=1024,
+        ckpt_dir='llama2/llama-2-7b-chat/',
+        tokenizer_path='llama2/tokenizer.model',
+        max_seq_len=2048,
+        max_batch_size=4,
+        # nproc_per_node=4
+    )
     # print(ga.initialize_population("Rewrite the expression as \\lim_{x \\to \\infty} n^{\\frac{1}{n}} = 1.", "gpt-3.5-turbo", 5))
     EXAMPLE = ["Certainly, let's prove that \(\lim_{n \to \infty} \sqrt[n]{n} = 1\).",
         """Step 1: Definition of the Limit
@@ -306,5 +338,5 @@ if __name__ == '__main__':
     # print(example_populations[1])
     # print(example_populations[2])
     print("---------------------------------------------")
-    print(ga.evolution(problem, "gpt-3.5-turbo", debug=True))
+    print(ga_llama.initialize_population(EXAMPLE[0]))
     print("---------------------------------------------")
