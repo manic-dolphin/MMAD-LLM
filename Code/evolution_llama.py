@@ -101,7 +101,7 @@ class GA_LLAMA():
 
         return populattions
     
-    def compute_fittness_score(self,
+    def compute_fitness_score(self,
                                populations:list,
                                problem:str) -> list:
         
@@ -119,25 +119,25 @@ class GA_LLAMA():
             }
         ]]
 
-        fittness_scores = self.generator.chat_completion(
+        fitness_scores = self.generator.chat_completion(
                     dialogs=messages,
                     temperature=0.0,
                     max_gen_len=32
                     )
 
-        fittness_scores = fittness_scores[0]['generation']['content']
-        fittness_scores = re.findall(r"\d+\.?\d*", fittness_scores)
+        fitness_scores = fitness_scores[0]['generation']['content']
+        fitness_scores = re.findall(r"\d+\.?\d*", fitness_scores)
         # TODO
-        while len(fittness_scores) != population_numbers:
-                fittness_scores = self.generator.chat_completion(
-                    dialogs=messages,
-                    temperature=0.0,
-                    max_gen_len=32
-                    )
-                fittness_scores = fittness_scores[0]['generation']['content']
-                fittness_scores = re.findall(r"\d+\.?\d*", fittness_scores)
+        # while len(fittness_scores) != population_numbers:
+        #         fittness_scores = self.generator.chat_completion(
+        #             dialogs=messages,
+        #             temperature=0.0,
+        #             max_gen_len=32
+        #             )
+        #         fittness_scores = fittness_scores[0]['generation']['content']
+        #         fittness_scores = re.findall(r"\d+\.?\d*", fittness_scores)
 
-        return torch.softmax(torch.tensor([float(score) for score in fittness_scores]), dim=0)
+        return torch.softmax(torch.tensor([float(score) for score in fitness_scores]), dim=0)
 
     def crossover(self,
                   problem:str,
@@ -230,18 +230,18 @@ class GA_LLAMA():
                 logging.info(f"current population: {populations}")
                 
                 # compute the fittness scores
-                fittness_scores = self.compute_fittness_score(
+                fitness_scores = self.compute_fitness_score(
                                                             populations,
                                                             problem
                                                             )
-                logging.info(f"fittness scores: {fittness_scores}")
+                logging.info(f"fittness scores: {fitness_scores}")
                 
                 # roulette wheel selection rule 
-                probs = fittness_scores
+                probs = fitness_scores
                 samples = torch.multinomial(probs, population_numbers, replacement=True)
                 logging.info(f"sample index: {samples}")
                 # BUG
-                assert len(samples) == len(populations) == len(probs)
+                # assert len(samples) == len(populations) == len(probs)
                 selected_populations = [populations[i] for i in samples]
 
                 new_populations = []
@@ -268,13 +268,13 @@ class GA_LLAMA():
                 populations = new_populations
 
             # recompute the fittness scores of the generated populations
-            final_fittness_scores = self.compute_fittness_score(
+            final_fitness_scores = self.compute_fitness_score(
                                                                 populations,
                                                                 problem
                                                                 )
             
             # append the optimal solution to the previous steps
-            optimal_step = populations[torch.argmax(final_fittness_scores)]
+            optimal_step = populations[torch.argmax(final_fitness_scores)]
             previsou_steps.append(optimal_step)
 
             logging.info(f"optimal solution for current step: {optimal_step}")

@@ -2,6 +2,6 @@ clash/
 *.log
 mindreading/
 emnlp2023-unifm-mindreading/
-llama2/
 *.txt
 *.pyc
+llama2/

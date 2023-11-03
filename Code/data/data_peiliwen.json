@@ -216,9 +216,99 @@
         "output": ""
     },
     {
-        "prompt": "please prove that: the third derivative $f'''(x)$ of $f(x)=|x^{3}|$ does not exist at $x = 0$.",
+        "prompt": "Let $f(x)=\\frac{x+2}{x+1}\\sin{\\frac{1}{x}}, a > 0$, $a$ is constant. Prove that $f(x)$ is not uniformly continuous in $[a,+\\infty)$.",
+        "score": 0,
+        "source": "Typical Problems and Methods in Mathematical Analysis page125",
+        "output": ""
+    },
+    {
+        "prompt": "Prove that $f(x)=\\frac{1}{x}, g(x)=x^2$ are not uniformly continuous in $(1,+\\infty)$.",
+        "score": 0,
+        "source": "Typical Problems and Methods in Mathematical Analysis page125",
+        "output": ""
+    },
+    {
+        "prompt": "Prove that $f(x)$ is uniformly continuous on $I$ if and only if when any sequences $\\{x_n\\}, \\{x^{'}_{n}\\}$ satisfy ${x_n}-{x^{'}_{n}}\\to \\infty$, then $f(x_n)-f(x^{'}_{n})\\to 0(n\\to\\infty)$.",
+        "score": 0,
+        "source": "Typical Problems and Methods in Mathematical Analysis page126",
+        "output": ""
+    },
+    {
+        "prompt": "Let $f(x)$ is uniformly continuous on $[0,+\\infty)$ and for any$x>0$,$\\lim_{n\\to\\infty}f(x+n)=0$,$n$ is a positive integer. Prove that $\\lim_{x\\to+\\infty}f(x)=0$.",
+        "score": 0,
+        "source": "Typical Problems and Methods in Mathematical Analysis page129",
+        "output": ""
+    },
+    {
+        "prompt": "Prove that $y=\\sin{\\sqrt{x}}$ is uniformly continuous on $(0,+\\infty)$.",
+        "score": 0,
+        "source": "Typical Problems and Methods in Mathematical Analysis page133",
+        "output": ""
+    },
+    {
+        "prompt": "Prove that periodic functions must be uniformly continuous as long as they are continuous.",
+        "score": 0,
+        "source": "Typical Problems and Methods in Mathematical Analysis page134",
+        "output": ""
+    },
+    {
+        "prompt": "Let $f(x)$ is continuous on $[a,+\\infty)$ and $\\lim_{x\\to +\\infty}[f(x)-2x-1]=0,(c,d$ are constant). Prove that $f(x)$ is uniformly continuous on $[a,+\\infty)$.",
+        "score": 0,
+        "source": "Typical Problems and Methods in Mathematical Analysis page136",
+        "output": ""
+    },
+    {
+        "prompt": "$f(x+y)=f(x)f(y)$ is defined on $\\mathbb{R}$. Prove that the only function that satisfies the equation and not everlastingly equaling to 0 is $f(x)=a^x$($a>0$ and is constant).",
+        "score": 0,
+        "source": "Typical Problems and Methods in Mathematical Analysis page141",
+        "output": ""
+    },
+    {
+        "prompt": "Suppose $f(x)$ is continuous on $\\mathbb{R}$. For any $x,y\\in \\mathbb{R}$, $f(x+y)=f(x)f(y)$. Prove that $f(x)$ is differentiable on $\\mathbb{R}$.",
+        "score": 0,
+        "source": "Typical Problems and Methods in Mathematical Analysis page144",
+        "output": ""
+    },
+    {
+        "prompt": "$f(xy) = f(x)f(y)$ is defined on $\\mathbb{R}$. Prove that the only continuous function that satisfies the equation and not everlastingly equaling to 0 is $f(x)=a^x$($a > 0$ and is constant).",
+        "score": 0,
+        "source": "Typical Problems and Methods in Mathematical Analysis page145",
+        "output": ""
+    },
+    {
+        "prompt": "Prove that the third derivative $f^{'''}(0)$ on $x=0$ of $f(x)=|x|^3$ does not exist.",
         "score": 0,
         "source": "Typical Problems and Methods in Mathematical Analysis page149",
+        "output": ""
+    },
+    {
+        "prompt": "Let $f(x)$ is continuous at $x=0$ and $\\lim_{x\\to 0}\\frac{f(2x)-f(x)}{x}=A$. Prove that there exists $f^{'}(0)$ and $f^{'}(0)=A$.",
+        "score": 0,
+        "source": "Typical Problems and Methods in Mathematical Analysis page152",
+        "output": ""
+    },
+    {
+        "prompt": "Let $f(x)$ on $[a,b]$ satisfy $|f(x) - f(y)|\\leq M|x - y|^\\alpha$, for any $x,y\\in [a,b]$, where $M > 0, \\alpha > 1$ are constant. Prove that $f(x)$ is always constant on $[a,b]$.",
+        "score": 0,
+        "source": "Typical Problems and Methods in Mathematical Analysis page161",
+        "output": ""
+    },
+    {
+        "prompt": "Suppose $f(x)$ is continuous on $[a,b]$ and derivable within $(a,b)$, $f(a) = f(b) =0 $. Prove that for all $\\alpha\\in \\mathbb{R}$, there exists $\\psi \\in(a,b)$ satisfying $\\alpha f(\\psi) = f^{'}(\\psi)$.",
+        "score": 0,
+        "source": "Typical Problems and Methods in Mathematical Analysis page166",
+        "output": ""
+    },
+    {
+        "prompt": "Suppose that $f(x), g(x)$ are continuous on $[a,b]$ and derivable within $(a,b)$. For any $x\\in(a,b)$, $g^{'}(x)\\neq0$. Prove that there exists $\\psi\\in(a,b)$ satisfying $\\frac{f^{'}(\\psi)}{g^{'}(\\psi)} = \\frac{f(\\psi) - f(a)}{g(b) - g(\\psi)}$.",
+        "score": 0,
+        "source": "Typical Problems and Methods in Mathematical Analysis page167",
+        "output": ""
+    },
+    {
+        "prompt": "Suppose that $f(x)$ is derivable on $[0,+\\infty)$ and $0\\leq f(x)\\leq\\frac{x}{1+x^{2}}$. Prove that there exists $\\psi>0$ which satisfies  $f^{'}(\\psi) = \frac{1 - {\\psi}^2}{(1 + \\psi^{2})^2}$.",
+        "score": 0,
+        "source": "Typical Problems and Methods in Mathematical Analysis page168",
         "output": ""
     },
     {
