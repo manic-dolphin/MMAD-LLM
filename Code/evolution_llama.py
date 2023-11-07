@@ -192,7 +192,7 @@ class GA_LLAMA():
                 "content": prompt
             }
         ]]
-        m = torch.distributions.Uniform(1.0, 1.5)
+        m = torch.distributions.Uniform(0.0, 1.0)
         temperature = m.sample()
         # l = int(3.5 * len(parent.split(' ')))
         new_step = self.generator.chat_completion(
