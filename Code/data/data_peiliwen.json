@@ -312,15 +312,87 @@
         "output": ""
     },
     {
-        "prompt": "please prove that: ",
+        "prompt": "Suppose that $f(x)$ is continuous and differentiable on $(a,b)$. $f(x)$ is nonlinear function and $f(b) > f(a)$. Prove that there exists $\\psi\\in (a,b)$ such that $f^{'}(\\psi)>\\frac{f(b)-f(a)}{b-a}$.",
         "score": 0,
-        "source": "Typical Problems and Methods in Mathematical Analysis page",
+        "source": "Typical Problems and Methods in Mathematical Analysis page171",
         "output": ""
     },
     {
-        "prompt": "please prove that: ",
+        "prompt": "Suppose $f(x)$ is differentiable on $[0,+\\infty), f(0) = 0$. If $A > 0$ and $A$ is a real number such that $|f^{'}(x)|\\leq A|f(x)|$ on $[0,+\\infty)$. Prove that $f(x)\\equiv 0$.",
         "score": 0,
-        "source": "Typical Problems and Methods in Mathematical Analysis page",
+        "source": "Typical Problems and Methods in Mathematical Analysis page174",
+        "output": ""
+    },
+    {
+        "prompt": "Suppose $|f^{''}(x)|\\leq M$ on $[0,a]$ and $f(x)$ has a maximum value within $(0,a)$. Prove that $|f^{'}(0)|+|f^{'}(a)|\\leq Ma$. Note that $M, a$ are real numbers.",
+        "score": 0,
+        "source": "Typical Problems and Methods in Mathematical Analysis page175",
+        "output": ""
+    },
+    {
+        "prompt": "Suppose that $f(x)$ is continuous on $[a,b]$ and differentiable on $(a,b)$, if $0\\leq a< b$, then $f(a)\\neq f(b)$. Prove that there exist $\\psi,\\theta \\in (a,b)$, such that $f^{'}(\\psi)=\\frac{a+b}{2\\theta}f^{'}(\\theta)$.",
+        "score": 0,
+        "source": "Typical Problems and Methods in Mathematical Analysis page181",
+        "output": ""
+    },
+    {
+        "prompt": "Suppose that $f(x)$ is continuous on $[a,b]$ and differentiable on $(a,b), 0<a<b$. Prove that there exist $x_{1}, x_{2}, x_{3}$ within $(a,b)$ such that $\\frac{f^{'}(x_1)}{2x_1}=(b^{2}+a^{2})\\frac{f^{'}(x_2)}{4x_{2}^{3}}=\\frac{\\ln{\\frac{b}{a}}}{b^{2}-a^{2}}x_{3}f^{'}(x_3)$.",
+        "score": 0,
+        "source": "Typical Problems and Methods in Mathematical Analysis page181",
+        "output": ""
+    },
+    {
+        "prompt": "Suppose $f(x)$ is differentiable on $\\mathbb{R}$. If $\\lim_{x\\to +\\infty}[f(x)+f^{'}(x)]=A$, prove that $\\lim_{x\\to +\\infty}f(x)=A, \\lim_{x\\to +\\infty}f^{'}(x)=0$. ",
+        "score": 0,
+        "source": "Typical Problems and Methods in Mathematical Analysis page184",
+        "output": ""
+    },
+    {
+        "prompt": "Suppose that $f(x)$ is third-order differentiable on $\\mathbb{R}$. Prove that there exists $c\\in (a,b)$, such that $f(b)=f(a)+f^{'}(\\frac{a+b}{2})(b-a)-\\frac{1}{24}k(b-a)^3$.",
+        "score": 0,
+        "source": "Typical Problems and Methods in Mathematical Analysis page198",
+        "output": ""
+    },
+    {
+        "prompt": "Suppose that $f(x)$ is second-order differentiable on $\\mathbb{R}$, $f(0)=f(1)=0, \\max_{0\\leq x \\leq 1}f(x)=2$. Prove that $\\min_{0\\leq x \\leq 1}{f^{''}(x)\\leq -16}$.",
+        "score": 0,
+        "source": "Typical Problems and Methods in Mathematical Analysis page200",
+        "output": ""
+    },
+    {
+        "prompt": "Suppose $f(x)$ is second-order differentiable on $[a,b], f^{'}(a)=f^{'}(b)=0$. Prove that there exists $\\psi \\in (a,b)$ such that $|f^{''}(\\psi)|\\geq \\frac{4}{(b-a)^2}|f(b)-f(a)|$.",
+        "score": 0,
+        "source": "Typical Problems and Methods in Mathematical Analysis page201",
+        "output": ""
+    },
+    {
+        "prompt": "Suppose that $f(x)$ has a second derivative on $[0,1]$. For any $x\\in[0,1], |f(x)|\\leq 1, |f^{''}(x)| < 2$. Prove that for any $x\\in[0,1], |f^{'}(x)|\\leq 3$.",
+        "score": 0,
+        "source": "Typical Problems and Methods in Mathematical Analysis page202",
+        "output": ""
+    },
+    {
+        "prompt": "Suppose that $f(x)$ has a continuous second derivative. $f(1)=f(0)$, and for any $x\\in [0,1],$ $|f^{''}(x)|\\leq M$. Prove that for any $x\\in [0,1],$ $|f^{'}(x)| \\leq \\frac{M}{2}$.",
+        "score": 0,
+        "source": "Typical Problems and Methods in Mathematical Analysis page202",
+        "output": ""
+    },
+    {
+        "prompt": "Suppose that $f(x)$ has a continuous third derivative on $(-\\infty,+\\infty)$. $f(x)$ and $f^{'''}(x)$ are bounded on $(-\\infty,+\\infty)$. Prove that $f^{'}(x)$ and $f^{''}(x)$ are also bounded on  $(-\\infty,+\\infty)$.",
+        "score": 0,
+        "source": "Typical Problems and Methods in Mathematical Analysis page203",
+        "output": ""
+    },
+    {
+        "prompt": "Suppose that $f(x)$ is second-order continuous differentiable on $[0,+\\infty)$. $f^{''}(x)$ is bounded on $[0,+\\infty)$. Prove that $\\lim_{x\\to +\\infty}f^{'}(x)=0$.",
+        "score": 0,
+        "source": "Typical Problems and Methods in Mathematical Analysis page204",
+        "output": ""
+    },
+    {
+        "prompt": "Suppose that $f(x)$ is differentiable on $(0,+\\infty)$ and $f^{'}(x)=O(x)$, when $x\\to +\\infty$. Prove that  $f(x)=O(x^2)$.",
+        "score": 0,
+        "source": "Typical Problems and Methods in Mathematical Analysis page211",
         "output": ""
     },
     {

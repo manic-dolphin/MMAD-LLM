@@ -57,4 +57,4 @@ def score_with_llm(textbook:str,
 if __name__ == '__main__':
     # data = load_data('peiliwen')
     # print(data.iloc[36]['prompt'])
-    score_with_llm('peiliwen','llama', 51, 1) 
+    score_with_llm('peiliwen','llama', 52, 14) 
