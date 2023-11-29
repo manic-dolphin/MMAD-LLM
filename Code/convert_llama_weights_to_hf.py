@@ -82,8 +82,9 @@ def write_json(text, path):
 
 def write_model(model_path, input_base_path, model_size, tokenizer_path=None, safe_serialization=True):
     # for backward compatibility, before you needed the repo to be called `my_repo/model_size`
-    if not os.path.isfile(os.path.join(input_base_path, "params.json")):
-        input_base_path = os.path.join(input_base_path, model_size)
+    # BUG
+    # if not os.path.isfile(os.path.join(input_base_path, "params.json")):
+    #     input_base_path = os.path.join(input_base_path, model_size)
 
     os.makedirs(model_path, exist_ok=True)
     tmp_model_path = os.path.join(model_path, "tmp")

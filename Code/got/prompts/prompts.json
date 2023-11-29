@@ -1,0 +1,8 @@
+{
+    "planner_prompt": "Make a solving plan for this problem",
+    "generate_prompt": "Instruction: generate a new step based on the current solution steps. Here is the current steps: ",
+    "refine_prompt": "Instruction: improve and enhance the current solution to make it more logical, rigorous, and accurate. Here is current solutions: ",
+    "aggregate_prompt": "Instruction: given the currently obtained solutions, thoroughly consider their strengths and weaknesses. Finally, aggregate them into a new solution and return it. The new solution should be reasonable, scientific, and consistent with the original problem-solving framework. We have organized the solutions into a list. Here are the obtained solutions:",
+    "score_prompt": "Instruction: Considering the initial solution along with the original problem, score the current solution on a scale of 0 to 10. #You must ensure that your output adheres to the following format: Score: []. #The initial problem is {}. Here is the current solution: {}. Now give me your score: ",
+    "mutation_prompt": ""
+}

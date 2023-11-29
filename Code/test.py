@@ -3,8 +3,8 @@ import json
 import torch
 import re
 import replicate
+from transformers import LlamaForCausalLM, LlamaTokenizer
 
 if __name__ == '__main__':
-    parent = 'The parent step that requires mutation is: '
-    l = int(3.5 * len(parent.split(' ')))
-    print(l)
+    model = LlamaForCausalLM.from_pretrained("./output/llama2-7b-chat")
+    tokenizer = LlamaTokenizer.from_pretrained("./output/llama2-7b-chat")

@@ -5,3 +5,6 @@ emnlp2023-unifm-mindreading/
 *.txt
 *.pyc
 llama2/
+*.bin
+*.model
+output/
