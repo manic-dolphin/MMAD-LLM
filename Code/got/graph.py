@@ -4,6 +4,9 @@ import torch
 import json
 import numpy as np
 import re
+import logging
+from incontext_prompt import SCORE_EXAMPLES_PROMPTS
+from collections import deque
 
 class Thought:
     """
@@ -18,13 +21,14 @@ class Thought:
         self.state = state
         self.value = value
         self.refine_tag = False
+        self.parents = []
         
 class Operations:
     
     def __init__(self,
                  model,
                  initial_problem: str,
-                 max_gen_len: int=32,
+                 max_gen_len: int=128,
                  prompt_config_dir='./prompts/prompts.json'
                  ):
         
@@ -43,7 +47,7 @@ class Operations:
         # decide how many nodes should be aggreated
         size = torch.randint(2, l, (1,))
         # sample indices to aggrearted
-        index = list(set(np.array(torch.randint(0, l, (size,)))))
+        index = list(set(np.array(torch.randint(0, l, (size,)).cpu())))
         states = [thoughts[i].state for i in index]
         prompt = self.aggregate_prompt + str(states)
         messages = [[
@@ -110,7 +114,8 @@ class Operations:
               thought: Thought) -> int:
         
         current_state = thought.state
-        prompt = self.score_prompt.format(self.initial_problem, current_state)
+        # prompt = self.score_prompt.format(SCORE_EXAMPLES_PROMPTS, self.initial_problem, current_state)
+        prompt = SCORE_EXAMPLES_PROMPTS.format(self.initial_problem, current_state)
         messages = [[
             {
                 "role": "user",
@@ -118,18 +123,13 @@ class Operations:
             }
         ]]
         score: int= -1
-        while score < 0 or score > 10:
-            output = self.model.chat_completion(
+        output = self.model.chat_completion(
                         dialogs=messages,
                         temperature=0.0,
                         max_gen_len=self.max_gen_len
-                        )
-            value = output[0]['generation']['content']
-            print(value)
-            value = re.findall(r'Score:\s*\d+/\d+', value)[0]
-            score = int(value[7])
-        
-        thought.value = score
+                    )
+        value = output[0]['generation']['content']
+        score = int(re.findall(r"Score: \[(\d+)\]", value)[0])
         
         return score
         
@@ -154,7 +154,7 @@ class GoT:
         self.aggregate_prob = aggregate_prob
         self.refine_prob = refine_prob
         
-    def find_n_max_score(self, scores: List[Optional]):
+    def find_n_max_score(self, scores: List[int]):
         
         if len(scores) <= self.max_breadth:
             return None
@@ -166,12 +166,33 @@ class GoT:
     def plot_graph(self):
         pass
     
+    def consturct_graph(self, history_thoughts: List[Thought]):
+        root = history_thoughts[0]
+        q = deque()
+        q.append(root)
+        graph = []
+        graph.append(root)
+        while len(q) != 0:
+            cur = q.popleft()
+            successors = cur.successors
+            successors_new = []
+            for thought in successors:
+                if thought in history_thoughts:
+                    successors_new.append(thought)
+                    thought.parents.append(cur)
+                    q.append(thought)
+                    graph.append(thought)
+                    
+            cur.successors = successors_new
+        
+        return graph
+                       
     def reason(self,
-               max_breadth: int,
+            #    max_breadth: int,
                max_depth: int,
                max_generate_nodes_number_per_node: int=2):
         
-        assert max_breadth > 0 and max_depth > 0
+        assert max_depth > 0
         
         depth_flag = 0
         
@@ -197,7 +218,7 @@ class GoT:
                     new_thoughts.append(new_thought)
                     
             # aggregate the thoughts
-            if cur_node_number > 1:
+            if cur_node_number > 2:
                 for i in range(int(2 ** depth_flag)):
                     a_prob = torch.rand(1)
                     if a_prob > 0.5:
@@ -208,7 +229,7 @@ class GoT:
             # rate the generated new thoughts, and update the graph
             scores = [self.operations.score(thought) for thought in new_thoughts]
             indices = self.find_n_max_score(scores)
-            if indices == None:
+            if indices is None:
                 self.current_thoughts = new_thoughts
                 for thought in self.current_thoughts:
                     self.previous_thoughts.append(thought)

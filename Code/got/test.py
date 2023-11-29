@@ -17,3 +17,8 @@ if __name__ == '__main__':
     print(int(x[7]))
     a = [1, 2, 3, 4, 5, 6, 7, 8]
     print(a[-2:])
+    x = None
+    print(type(x))
+    print(x is None)
+    y = [1, 2, 3]
+    print(y is None)

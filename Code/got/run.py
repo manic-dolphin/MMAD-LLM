@@ -15,7 +15,7 @@ if __name__ == '__main__':
     #     )
     model = pm.get_model()
     planner_model = Planner(model=model,
-                            max_gen_len=32)
+                            max_gen_len=128)
     # print(planner_model.get_initial_state("please compute 10!, here is the answer: "))
     initial_state = planner_model.get_initial_state("please compute 10!, here is the answer: ")
     operations = Operations(model,
@@ -24,6 +24,8 @@ if __name__ == '__main__':
     got = GoT(initial_thought=initial_thought,
               operations=operations,
               )
-    # print(got.)
     print(operations.generate(initial_thought).state)
+    print("------------------")
     print(operations.score(initial_thought))
+    got.reason(5)
+    print(got.previous_thoughts)
