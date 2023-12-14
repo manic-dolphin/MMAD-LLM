@@ -40,6 +40,7 @@ class Operations:
         self.refine_prompt = self.prompt_config['refine_prompt']
         self.aggregate_prompt = self.prompt_config['aggregate_prompt']
         self.score_prompt = self.prompt_config['score_prompt']
+        self.aggregate_gen_length = 128
     
     def aggregate(self,
                   thoughts: List[Thought]):
@@ -129,8 +130,13 @@ class Operations:
                         max_gen_len=self.max_gen_len
                     )
         value = output[0]['generation']['content']
-        score = int(re.findall(r"Score: \[(\d+)\]", value)[0])
-        
+        try: 
+            score = int(re.findall(r"Score: \[(\d+)\]", value)[0])
+        except IndexError as e:
+            # TODO
+            # score = score(self, thought)
+            pass
+            
         return score
         
 class GoT:
