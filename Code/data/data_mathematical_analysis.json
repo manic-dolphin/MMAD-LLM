@@ -6,7 +6,7 @@
         "output": ""
     },
     {
-        "prompt": "please prove that: \\lim_{n to \\infty} \\frac{n_{2} +1 }{2 * n_{2} - 7 * n} = 1/2.",
+        "prompt": "please prove that: \\lim_{n to \\infty} \\frac{n^{2} +1 }{2 * n^{2} - 7 * n} = 1/2.",
         "score": 5,
         "source": "Mathematical Analysis(1) page37",
         "output": ""

@@ -8,13 +8,20 @@ class Planner:
     """
     def __init__(self, 
                  model,
+                 subject:str="math",
                  max_gen_len=512,
                  prompt_config_dir='./prompts/prompts.json'):
         
         self.model = model
         self.max_gen_len = max_gen_len
-        prompt_config = json.load(open(prompt_config_dir))
+        self.subject = subject
+        if subject == 'math':
+            prompt_config = json.load(open('./prompts/math_prompts.json'))
+        else:
+            prompt_config = json.load(open(prompt_config_dir))
+            
         self.plan_prompt = prompt_config['planner_prompt']
+        
     
     def get_initial_state(self,
                           problem: str
