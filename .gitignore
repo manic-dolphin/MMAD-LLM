@@ -12,3 +12,4 @@ Code/finetuning_llama
 Code/huggingface
 Code/got/T5
 Code/got/data
+*.out
