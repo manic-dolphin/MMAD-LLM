@@ -46,7 +46,7 @@ if __name__ == '__main__':
             score = operations.score(initial_thought)
             scores.append(score)
         
-        average_scores.append(torch.mean(torch.tensor(scores)))
+        average_scores.append(sum(scores) / len(scores))
         
     print("average scores: {}.".format(average_scores))
     saved_scores = np.array(average_scores)

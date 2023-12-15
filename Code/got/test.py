@@ -34,3 +34,8 @@ if __name__ == '__main__':
     x = torch.tensor([1, 2, 3]).to('cuda')
     print(x)
     print(torch.__version__)
+    scores = [1, 2, 3, 4]
+    average_scores = []
+    average_scores.append(sum(scores) / len(scores))
+    # average_scores.append(torch.mean(torch.tensor(scores)))
+    print(average_scores)
