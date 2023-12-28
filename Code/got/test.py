@@ -6,36 +6,39 @@ import torch
 import numpy as np
 import datasets
 from datasets import load_dataset
-# datasets.config.HF_DATASETS_OFFLINE = True
 import os
 import transformers
+from transformers import AutoTokenizer, AutoModelForCausalLM
+from fairscale.nn.model_parallel.initialize import initialize_model_parallel
+import evaluate
+import deepspeed
 
 if __name__ == '__main__':
-    # ids: Iterator[int] = itertools.count(0)
-    # print(type(ids))
-    # for i in range(5):
-    #     print(next(ids))
-    # print(list(set(np.array(torch.randint(1, 5, (5,))))))
-    # print(type(str([1, 3, 3, 4])))
-    # print("Instruction: Considering the initial solution along with the original problem, rate the current solution on a scale of 0 to 10, returning a single numerical value. The initial problem is {}. Here is the current solution: {}. Your score is:".format(1, 2))
-    # x = 'Score: 8/10'
-    # print(int(x[7]))
-    # a = [1, 2, 3, 4, 5, 6, 7, 8]
-    # print(a[-2:])
-    # x = None
-    # print(type(x))
-    # print(x is None)
-    # y = [1, 2, 3]
-    # print(y is None)
-    os.environ['HTTP_PROXY'] = '127.0.0.1:7890'
-    os.environ['HTTPS_PROXY'] = '127.0.0.1:7890'
-    # dataset = load_dataset("yuyuc/chem-uspto", cache_dir='/data/yanyuliang/Code/got/data')
-    # print(dataset['train'][0]['INSTRUCTION'])
-    x = torch.tensor([1, 2, 3]).to('cuda')
-    print(x)
-    print(torch.__version__)
-    scores = [1, 2, 3, 4]
-    average_scores = []
-    average_scores.append(sum(scores) / len(scores))
-    # average_scores.append(torch.mean(torch.tensor(scores)))
-    print(average_scores)
+    # bleu = evaluate.load('bleu')
+    tokenizer = AutoTokenizer.from_pretrained('./WizardLM-13B-V1.2')
+    model = AutoModelForCausalLM.from_pretrained('./WizardLM-13B-V1.2')
+    # tokenizer = AutoTokenizer.from_pretrained('./Mistral-7B-Instruct-v0.1')
+    # model = AutoModelForCausalLM.from_pretrained('./Mistral-7B-Instruct-v0.1')
+    # tokenizer = AutoTokenizer.from_pretrained('/data/yanyuliang/Code/output/llama2-70b-chat')
+    # model = AutoModelForCausalLM.from_pretrained('/data/yanyuliang/Code/output/llama2-70b-chat')
+    ds_engine = deepspeed.init_inference(
+        model,
+        mp_size=1,
+        dtype=torch.float32,
+        replace_with_kernel_inject=True
+    )
+    model = ds_engine.module
+    
+    prompt = "hello, do you understand functional analysis?"
+    prompt = """
+    Here is a chemical reaction formula: Reactants are:aryl halide:CCOC(=O)C1=CC2=C(O1)C(=CC=C2)Br;amine:C1CN(CCN1)CCC2=CC=CC=N2, 
+    Reagents are:Base:C(=O)([O-])[O-].[Cs+].[Cs+];Solvent:C1COCCO1;
+    metal and ligand:CC(C)C1=CC(=C(C(=C1)C(C)C)C2=CC=CC=C2P(C3CCCCC3)C4CCCCC4)C(C)C;
+    metal and ligand:C1=CC=C(C=C1)/C=C/C(=O)/C=C/C2=CC=CC=C2.C1=CC=C(C=C1)/C=C/C(=O)/C=C/C2=CC=CC=C2.C1=CC=C(C=C1)/C=C/C(=O)/C=C/C2=CC=CC=C2.[Pd].[Pd], 
+    and Products are 0:CCOC(=O)C1=CC2=C(O1)C(=CC=C2)N3CCN(CC3)CCC4=CC=CC=N4, 
+    please give me the reaction condition of this formula.
+    """
+    model_inputs = tokenizer([prompt], return_tensors="pt").to("cuda")
+    output = model.generate(**model_inputs, max_new_tokens=1024, do_sample=True, temperature=0.5)
+    text = tokenizer.batch_decode(output)[0]
+    print(text)
