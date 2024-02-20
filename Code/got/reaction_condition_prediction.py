@@ -18,12 +18,12 @@ import os
 os.environ['HTTP_PROXY'] = '127.0.0.1:7890'
 os.environ['HTTPS_PROXY'] = '127.0.0.1:7890'
 
-logging.basicConfig(filename='construct_knowledge_0112.log',
-                    filemode='a',
-                    format='%(message)s',
-                    level=logging.DEBUG
-                    )
-logger = logging.getLogger(__name__)
+# logging.basicConfig(filename='construct_knowledge_0112.log',
+#                     filemode='a',
+#                     format='%(message)s',
+#                     level=logging.DEBUG
+#                     )
+# logger = logging.getLogger(__name__)
 
 def data_processing(data,
                     ):

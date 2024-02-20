@@ -34,5 +34,42 @@ Here is a chemical reaction. Reactants are: N#Cc1ccc(-c2ccc(F)cc2)nc1Cl, N#Cc1cc
 The reaction conditions of this reaction are: Agents: Cl. Solvents: CCN(C(C)C)C(C)C, CS(C)=O
 
 {}
-The reaction conditions of this reaction are:
+
+"""
+
+
+REACTION_CONDITION_COT_0 = """
+    Generate a detailed functional group analysis based on the following specific chemical reaction equation. 
+    The analysis should include a thorough understanding of the types and positions of functional groups in the reactants and products. 
+    Provide detailed information about the functional groups, covering their structures, chemical properties, and potential transformations during the reaction. 
+    Ensure that your analysis reflects a rich understanding of chemical knowledge and use scientific and chemical terminology for detailed explanations.
+    The chemical reaction is: {}.
+    Please consider the following:
+    1.Identify and describe the functional groups present in the reactants and products.
+    2.Analyze potential changes in functional groups during the reaction, including possible additions, eliminations, or transformations.
+    3.Describe the structures and properties of the functional groups, as well as their potential roles in the reaction.
+    4.Consider any potential catalytic or participatory roles of functional groups in the reaction.
+    5.Use professional scientific terminology to ensure that the generated analysis reflects a profound understanding of functional groups.
+"""
+
+REACTION_CONDITION_COT_1 = """
+    Based on the specific chemical reaction equation provided below, provide a detailed analysis to gain a profound understanding of the essence of the reaction. 
+    Focus on the reaction type, reaction conditions, and potential involvement of novel catalysts.
+    The chemical reaction is: {}.
+    Please elaborate on the following aspects, incorporating chemical knowledge for explanation:
+    1.Reaction Type: Determine and elaborate on the specific type of the reaction, such as nucleophilic substitution, addition reaction, redox reaction, etc. Explain how the substrate structure and reaction mechanism influence the categorization.
+    2.Reaction Conditions: Analyze the applicable reaction conditions, including temperature, pressure, solvent selection, etc. Provide detailed explanations of how these conditions impact the reaction rate and selectivity, considering principles from reaction kinetics and thermodynamics.
+    3.Novel Catalysts: Consider whether novel catalysts are involved in the reaction. If so, describe their structure, potential catalytic mechanisms, and advantages compared to traditional catalysts, incorporating principles of catalyst design.
+    4.Please use professional scientific and chemical terminology to ensure that the generated analysis fully reflects a profound understanding of the chemical reaction.
+"""
+
+REACTION_CONDITION_COT_2 = """
+    Based on the specific chemical reaction equation provided below, provide a detailed analysis to gain a profound understanding of the essence of the reaction. 
+    Focus on the reaction type, reaction conditions, and potential involvement of novel catalysts.
+    The chemical reaction is: {}.
+    Please elaborate on the following aspects, incorporating chemical knowledge for explanation:
+    1.Reaction Type: Determine and elaborate on the specific type of the reaction, such as nucleophilic substitution, addition reaction, redox reaction, etc. Explain how the substrate structure and reaction mechanism influence the categorization.
+    2.Reaction Conditions: Analyze the applicable reaction conditions, including temperature, pressure, solvent selection, etc. Provide detailed explanations of how these conditions impact the reaction rate and selectivity, considering principles from reaction kinetics and thermodynamics.
+    3.Novel Catalysts: Consider whether novel catalysts are involved in the reaction. If so, describe their structure, potential catalytic mechanisms, and advantages compared to traditional catalysts, incorporating principles of catalyst design.
+    4.Please use professional scientific and chemical terminology to ensure that the generated analysis fully reflects a profound understanding of the chemical reaction.
 """
