@@ -11,5 +11,5 @@ output/
 Code/finetuning_llama
 Code/huggingface
 Code/got/T5
-Code/got/data
+# Code/got/data
 *.out

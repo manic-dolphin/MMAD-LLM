@@ -7,6 +7,7 @@ import pandas as pd
 import numpy as np
 from tqdm import tqdm
 from typing import List
+# from colorama import init, Fore
 
 from langchain.embeddings.huggingface import HuggingFaceEmbeddings
 from langchain.vectorstores import FAISS
@@ -18,10 +19,10 @@ import evaluate
 from evaluate.visualization import radar_plot
 
 from reaction_condition_prediction import get_dataset
-from get_models import *
+# from get_models import *
 from templates import *
 
-logging.basicConfig(filename='./evaluation_cot_ft_0219.log',
+logging.basicConfig(filename='./evaluation_kot_ft_0220.log',
                     filemode='a',
                     format='%(message)s',
                     level=logging.DEBUG
@@ -107,7 +108,7 @@ def reaction_prediction_evaluation(setting: str,
                                    sava_per_steps: int=200
                                    ):
     
-    SETTINGS = ["4_shot_w/o_ft", "8_shot_w/o_ft", "ft", "cot_ft"]
+    SETTINGS = ["4_shot_w/o_ft", "8_shot_w/o_ft", "ft", "kot_ft"]
     assert setting in SETTINGS
     logging.info("Evaluation setting: {}".format(setting))
     logging.info("----------------Starting evaluation-------------------")
@@ -236,31 +237,27 @@ def reaction_prediction_evaluation(setting: str,
                 logging.info("Current agents predict acc is {}, current solvents predict acc is {}.".format(cur_agents_acc, cur_solvents_acc))
                 logging.info("-------------------------------------------------------")
         
-        if setting == 'cot_ft':
+        if setting == 'kot_ft':
             
             prompt = REACTION_CONDITION_COT_0.format(reaction)
             model_inputs = tokenizer(prompt, return_tensors='pt').to("cuda")
-            output_ids = knowledge_model.generate(model_inputs.input_ids, max_length=512) # max_new_tokens=96
+            output_ids = knowledge_model.generate(model_inputs.input_ids, max_new_tokens=512)
             cot_0 = tokenizer.batch_decode(output_ids)[0]
-            print(cot_0.strip())
             
             prompt = REACTION_CONDITION_COT_1.format(reaction)
             model_inputs = tokenizer(prompt, return_tensors='pt').to("cuda")
-            output_ids = knowledge_model.generate(model_inputs.input_ids, max_length=512) # max_new_tokens=96
+            output_ids = knowledge_model.generate(model_inputs.input_ids, max_new_tokens=512)
             cot_1 = tokenizer.batch_decode(output_ids)[0]
-            print(cot_1.strip())
             
             prompt = REACTION_CONDITION_COT_2.format(reaction)
             model_inputs = tokenizer(prompt, return_tensors='pt').to("cuda")
-            output_ids = knowledge_model.generate(model_inputs.input_ids, max_length=512) # max_new_tokens=96
+            output_ids = knowledge_model.generate(model_inputs.input_ids, max_new_tokens=512) # max_new_tokens=1024
             cot_2 = tokenizer.batch_decode(output_ids)[0]
-            print(cot_2.strip())
             
             cot_prompt = cot_0 + cot_1 + cot_2 + "  " + reaction
             model_inputs = tokenizer(cot_prompt, return_tensors='pt').to("cuda")
             output_ids = model.generate(model_inputs.input_ids, max_new_tokens=96) # max_new_tokens=96
             output = tokenizer.batch_decode(output_ids)[0]
-            print(output)
             
             start_index = output.rfind("Here is a chemical reaction.")
             input_string = output[start_index:]
@@ -339,9 +336,9 @@ if __name__ == '__main__':
     print("###############################################################################")
     # prompt = data[data_index]['reaction']
     # prompt = GENERAL_CONDITION_TEMPLATE + IN_CONTEXT_LEARNING_CONDITION_TEMPLETE.format(data[data_index]['reaction'])
-    model = AutoModelForCausalLM.from_pretrained('/data/yanyuliang/Code/got/output_step1_llama2_7b_lora_custom_tokenizer/', device_map='auto')
+    model = AutoModelForCausalLM.from_pretrained('/data/yanyuliang/Code/got/output_step1_llama2_7b_lora/', device_map='auto')
     knowledge_model = AutoModelForCausalLM.from_pretrained('/data/yanyuliang/Code/got/hf_models/llama2/llama2-7b-chat/', device_map='auto')
-    tokenizer = AutoTokenizer.from_pretrained('/data/yanyuliang/Code/got/output_step1_llama2_7b_lora_custom_tokenizer/')
+    tokenizer = AutoTokenizer.from_pretrained('/data/yanyuliang/Code/got/output_step1_llama2_7b_lora/')
     # tokenizer = AutoTokenizer.from_pretrained('/data/yanyuliang/Code/got/hf_models/llama2/llama2-7b-chat/')
     # model_inputs = tokenizer(prompt, return_tensors='pt').to("cuda")
     # output_ids = model.generate(model_inputs.input_ids, max_length=2048)
@@ -349,7 +346,7 @@ if __name__ == '__main__':
     # print(output)
     
     print("###############################################################################")
-    reaction_prediction_evaluation("ft",
+    reaction_prediction_evaluation("kot_ft",
                                    model=model,
                                    tokenizer=tokenizer,
                                    knowledge_model=knowledge_model
