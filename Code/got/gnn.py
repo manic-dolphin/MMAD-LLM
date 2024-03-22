@@ -60,8 +60,6 @@ class GINConv(MessagePassing):
 
 class GNN(torch.nn.Module):
     """
-    
-
     Args:
         num_layer (int): the number of GNN layers
         emb_dim (int): dimensionality of embeddings
@@ -72,7 +70,6 @@ class GNN(torch.nn.Module):
 
     Output:
         node/graph representations
-
     """
     def __init__(self, num_layer, emb_dim, JK = "last", drop_ratio = 0, gnn_type = "gin", use_graph_agg=False):
         super(GNN, self).__init__()

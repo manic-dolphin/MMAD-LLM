@@ -20,7 +20,7 @@ class GnnLlamaModel(LlamaModel):
     config_class = GnnLlamaConfig
     def __init__(self, config: LlamaConfig):
         super(GnnLlamaModel, self).__init__(config)
-        self.gnn = GNN(8, 4096)
+        self.gnn = GNN(3, 4096)
 
 class GnnLlamaForCausalLM(LlamaForCausalLM):
     _tied_weights_keys = ["lm_head.weight"]
@@ -31,7 +31,7 @@ class GnnLlamaForCausalLM(LlamaForCausalLM):
         self.model = LlamaModel(config)
         self.vocab_size = config.vocab_size
         self.lm_head = nn.Linear(config.hidden_size, config.vocab_size, bias=False)
-        self.gnn = GNN(8, 4096)
+        self.gnn = GNN(3, 4096)
 
         # Initialize weights and apply final processing
         self.post_init()
@@ -97,7 +97,7 @@ class GnnLlamaForCausalLM(LlamaForCausalLM):
         edge_index = graph["edge_index"]
         edge_attr = graph["edge_attr"]
         gnn_hidden_states = self.gnn(x, edge_index, edge_attr)
-        hidden_states = torch.cat((hidden_states, gnn_hidden_states), dim=1)
+        hidden_states = torch.cat((gnn_hidden_states, gnn_hidden_states), dim=1)
         
         if self.config.pretraining_tp > 1:
             lm_head_slices = self.lm_head.weight.split(self.vocab_size // self.config.pretraining_tp, dim=0)
