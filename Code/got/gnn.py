@@ -6,8 +6,11 @@ import torch.nn.functional as F
 from torch_geometric.nn import MessagePassing
 from torch_geometric.utils import add_self_loops
 
+# from gnn_untils import getSimilarityMatrix, getAdjacentMatrix, convertAdjacentMtrix2EdgeIndex
+
 num_bond_type = 6 #including aromatic and self-loop edge, and extra masked tokens
 num_bond_direction = 3 
+
 
 class GINConv(MessagePassing):
     """
@@ -104,11 +107,14 @@ class GNN(torch.nn.Module):
         else:
             self.out_dim = emb_dim
 
-    def forward(self, x, edge_index, edge_attr):
-
+    def forward(self, x, edge_index, edge_attr, modify_edges=True):
+        #modify_edges: whether update similarity or not
         h_list = [x]
         for layer in range(self.num_layer):
             h = self.gnns[layer](h_list[layer], edge_index, edge_attr)
+            # TODO
+            # if modify_edges:
+            #     edge_index = self.calculate_new_adj_matrix(h, edge_index)
             h = self.batch_norms[layer](h)
             #h = F.dropout(F.relu(h), self.drop_ratio, training = self.training)
             if layer == self.num_layer - 1:
@@ -134,11 +140,7 @@ class GNN(torch.nn.Module):
         return node_representation
 
     def load_from_pretrained(self, url_or_filename):
-        # if is_url(url_or_filename):
-        #     cached_file = download_cached_file(
-        #         url_or_filename, check_hash=False, progress=True
-        #     )
-        #     checkpoint = torch.load(cached_file, map_location="cpu")
+
         if os.path.isfile(url_or_filename):
             checkpoint = torch.load(url_or_filename, map_location="cpu")
         else:

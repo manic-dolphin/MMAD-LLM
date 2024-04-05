@@ -3,9 +3,10 @@
 
 import os
 # DeepSpeed Team
-from datasets import load_dataset, load_from_disk
+from datasets import load_dataset, load_from_disk, Dataset, concatenate_datasets
 from torch.utils.data import Subset
 import re
+from tqdm import tqdm
 
 
 # The template prompt dataset class that all new dataset porting needs to
@@ -52,7 +53,6 @@ class ChemOrderlyDataset(PromptRawDataset):
     def __init__(self, output_path, seed, local_rank, dataset_name):
         super().__init__(output_path, seed, local_rank, dataset_name)
         self.raw_datasets = self.raw_datasets.train_test_split(test_size=0.2)
-        # print(self.raw_datasets)
         self.raw_datasets = self.raw_datasets.rename_columns({'reaction': 'prompt', 'condition': 'chosen'})
         self.dataset_name = "Chem/orderly"
         self.dataset_name_clean = "Chem_orderly"
@@ -77,6 +77,90 @@ class ChemOrderlyDataset(PromptRawDataset):
 
     def get_prompt_and_rejected(self, sample):
         return sample['prompt'] + sample['rejected']
+
+# TODO
+class ChemOrderlyGnnDataset(PromptRawDataset):
+    
+    def __init__(self, output_path, seed, local_rank, dataset_name):
+        super().__init__(output_path, seed, local_rank, dataset_name)
+        self.raw_datasets = self.raw_datasets.train_test_split(test_size=0.1)
+        print("pass self.raw_datasets")
+        self.raw_datasets = self.raw_datasets.rename_columns({'reaction': 'prompt', 'condition': 'chosen'})
+        self.dataset_name = "Chem/orderly_gnn"
+        self.dataset_name_clean = "Chem_orderly_gnn"
+
+    def get_train_data(self):
+        return self.raw_datasets["train"]
+
+    def get_eval_data(self):
+        return self.raw_datasets["test"]
+
+    def get_prompt(self, sample):
+        return sample['prompt']
+
+    def get_chosen(self, sample):
+        return sample['chosen']
+
+    def get_rejected(self, sample):
+        return sample['rejected']
+
+    def get_prompt_and_chosen(self, sample):
+        return sample['prompt'] + sample['chosen']
+
+    def get_prompt_and_rejected(self, sample):
+        return sample['prompt'] + sample['rejected']
+    
+    def get_prompt_and_chosen_and_graph(self, sample):
+        return sample['prompt'] + sample['chosen'], sample['graph']
+
+# class ChemOrderlyGroverDataset(PromptRawDataset):
+    
+#     def __init__(self, output_path, seed, local_rank, dataset_name):
+#         super().__init__(output_path, seed, local_rank, dataset_name)
+#         smiles_for_grover = []
+#         for i in tqdm(range(len(self.raw_datasets)), desc="Extracting smiles"):
+#             condition = lambda x : ("Reactant" in x or "Product" in x) and "Functional" not in x
+#             res = list(filter(condition, self.raw_datasets[i]['graph_knowledge']))
+#             res = [ss.replace("Reactant: ","").replace("Product: ","").replace("[", "").replace("]","") for ss in res]
+#             smiles_for_grover.append(res)
+    
+#         smiles_for_grover = Dataset.from_dict({"origin_smiles": smiles_for_grover})    
+#         self.raw_datasets = concatenate_datasets([self.raw_datasets, smiles_for_grover], axis=1)
+#         self.raw_datasets = self.raw_datasets.train_test_split(test_size=0.1)
+#         # print(self.raw_datasets)
+#         self.raw_datasets = self.raw_datasets.rename_columns({'reaction': 'prompt', 'condition': 'chosen'})
+#         self.dataset_name = "Chem/orderly_grover"
+#         self.dataset_name_clean = "Chem_orderly_grover"
+
+#     def get_train_data(self):
+#         return self.raw_datasets["train"]
+
+#     def get_eval_data(self):
+#         return self.raw_datasets["test"]
+
+#     def get_prompt(self, sample):
+#         return sample['prompt']
+    
+#     def get_prompt_and_graph(self, sample):
+#         return sample['prompt'], sample['original_smiles']
+
+#     def get_chosen(self, sample):
+#         return sample['chosen']
+
+#     def get_rejected(self, sample):
+#         return sample['rejected']
+
+#     def get_prompt_and_chosen(self, sample):
+#         return sample['prompt'] + sample['chosen']
+
+#     def get_prompt_and_rejected(self, sample):
+#         return sample['prompt'] + sample['rejected']
+    
+#     def get_prompt_and_chosen_and_graph(self, sample):
+#         return sample['prompt'] + sample['chosen'], sample['origin_smiles']
+    
+#     def get_prompt_and_rejected_and_graph(self, sample):
+#         return sample['prompt'] + sample['rejected'], sample['origin_smiles'] 
 
 # English dataset
 class DahoasRmstaticDataset(PromptRawDataset):

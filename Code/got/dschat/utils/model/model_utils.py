@@ -15,6 +15,8 @@ from transformers.deepspeed import HfDeepSpeedConfig
 from dschat.utils.model.reward_model import RewardModel
 from dschat.utils.utils import load_state_dict_into_model, print_rank_0
 
+from gnn_llama import GnnLlamaForCausalLM
+
 
 def configure_dropout(model_config, dropout):
     if dropout is not None:
@@ -85,6 +87,7 @@ def causal_lm_model_to_fp32_loss(model):
 def create_hf_model(model_class,
                     model_name_or_path,
                     tokenizer,
+                    # use_gnn=False,
                     ds_config=None,
                     rlhf_training=False,
                     dropout=None):
@@ -114,6 +117,38 @@ def create_hf_model(model_class,
 
     return model
 
+def create_hf_gnn_model(
+                    model_name_or_path,
+                    tokenizer,
+                    dropout=None):
+    model_config = AutoConfig.from_pretrained(model_name_or_path)
+    configure_dropout(model_config, dropout)
+
+    model = GnnLlamaForCausalLM.from_pretrained(model_name_or_path)
+
+    model.config.end_token_id = tokenizer.eos_token_id
+    model.config.pad_token_id = model.config.eos_token_id
+    model.resize_token_embeddings(int(
+        8 *
+        math.ceil(len(tokenizer) / 8.0)))  # make the vocab size multiple of 8
+
+    return model
+
+def print_trainable_parameters(model):
+    """Function for printing the model's trainable parameters.
+
+    Args:
+        model (huggingface format model)
+    """
+    trainable_params = 0
+    all_param = 0
+    for _, param in model.named_parameters():
+        all_param += param.numel()
+        if param.requires_grad:
+            trainable_params += param.numel()
+    print(
+        f"trainable params: {trainable_params} || all params: {all_param} || trainable%: {100 * trainable_params / all_param}"
+    )
 
 def create_critic_model(model_name_or_path,
                         tokenizer,

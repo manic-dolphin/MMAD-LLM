@@ -5,7 +5,7 @@ emnlp2023-unifm-mindreading/
 *.txt
 *.pyc
 llama2/
-*.bin
+# *.bin
 *.model
 output/
 Code/finetuning_llama

@@ -3,6 +3,7 @@ from typing import List, Optional, Tuple, Union
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from torch.nn import CrossEntropyLoss
 from transformers import AutoConfig, AutoModelForCausalLM, LlamaConfig, LlamaModel, LlamaForCausalLM
 from transformers.modeling_outputs import BaseModelOutputWithPast, CausalLMOutputWithPast
@@ -61,7 +62,6 @@ class GnnLlamaForCausalLM(LlamaForCausalLM):
         position_ids: Optional[torch.LongTensor] = None,
         past_key_values: Optional[List[torch.FloatTensor]] = None,
         inputs_embeds: Optional[torch.FloatTensor] = None,
-        # TODO
         graph: Tuple = None,
         labels: Optional[torch.LongTensor] = None,
         use_cache: Optional[bool] = None,
@@ -93,11 +93,25 @@ class GnnLlamaForCausalLM(LlamaForCausalLM):
 
         # TODO
         hidden_states = outputs[0]
-        x = graph["x"]
-        edge_index = graph["edge_index"]
-        edge_attr = graph["edge_attr"]
-        gnn_hidden_states = self.gnn(x, edge_index, edge_attr)
-        hidden_states = torch.cat((gnn_hidden_states, gnn_hidden_states), dim=1)
+        # graph: [{"x": , "edge_index": , "edge_attr: "}, {"x": , "edge_index": , "edge_attr: "}, ...]
+        gnn_hidden_states = []
+        # encode the data in the batch
+        for data in graph:
+            x = torch.tensor(data['x']).to("cuda").half()
+            edge_index = torch.tensor(data['edge_index'], dtype=torch.long).to("cuda")
+            edge_attr = torch.tensor(data['edge_attr'], dtype=torch.long).to("cuda")
+            # pooling to one token
+            gnn_hidden_states.append(torch.sum(self.gnn(x, edge_index, edge_attr), dim=0))
+            
+        # print(f"llm hidden dim:{hidden_states.shape}")
+        gnn_hidden_states = torch.stack(gnn_hidden_states)
+        gnn_hidden_states = torch.unsqueeze(gnn_hidden_states, dim=1)
+        # print(f"gnn hidden dim:{gnn_hidden_states.shape}")
+        # BUG
+        # sum or concat
+        # hidden_states = torch.cat((gnn_hidden_states, hidden_states), dim=1)
+        # print(f"concat hidden dim:{hidden_states.shape}")
+        hidden_states = hidden_states + gnn_hidden_states
         
         if self.config.pretraining_tp > 1:
             lm_head_slices = self.lm_head.weight.split(self.vocab_size // self.config.pretraining_tp, dim=0)

@@ -5,42 +5,34 @@
 # DeepSpeed Team
 import argparse
 import math
-from typing import Dict, Sequence
-import copy
-import logging
-from dataclasses import dataclass, field
+import pdb
+from typing import List, Dict
+import numpy as np
 
 import torch
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torch.utils.data.distributed import DistributedSampler
+
+from gnn_llama import GnnLlamaForCausalLM
 
 from transformers import (
     AutoModelForCausalLM,
     SchedulerType,
     default_data_collator,
     get_scheduler,
-    LlamaTokenizer
 )
-import transformers
-from torch.utils.data import Dataset
-from datasets import Dataset as ds
 
 import deepspeed
 from deepspeed.ops.adam import DeepSpeedCPUAdam, FusedAdam
 from deepspeed import get_accelerator
 
-from dschat.utils.data.data_utils import create_prompt_dataset
+from dschat.utils.data.data_utils import create_prompt_dataset, data_collator
 from dschat.utils.utils import print_rank_0, to_device, save_hf_format, set_random_seed, get_all_reduce_mean, get_optimizer_grouped_parameters, save_zero_three_model, load_hf_tokenizer
 from dschat.utils.ds_utils import get_train_ds_config
 from dschat.utils.module.lora import convert_linear_layer_to_lora, convert_lora_to_linear_layer, only_optimize_lora_parameters, make_model_gradient_checkpointing_compatible
-from dschat.utils.model.model_utils import create_hf_model, causal_lm_model_to_fp32_loss
+from dschat.utils.model.model_utils import create_hf_model, causal_lm_model_to_fp32_loss, create_hf_gnn_model, print_trainable_parameters
 from dschat.utils.perf import print_throughput
 
-IGNORE_INDEX = -100
-DEFAULT_PAD_TOKEN = "[PAD]"
-DEFAULT_EOS_TOKEN = "</s>"
-DEFAULT_BOS_TOKEN = "<s>"
-DEFAULT_UNK_TOKEN = "<unk>"
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -51,7 +43,7 @@ def parse_args():
                         default=['./data/chem_data/orderly_train'],
                         help='Path to the training dataset. Accepted format:'
                         '1) a single data path, 2) multiple datasets in the'
-                        'form: dataset1-path dataset2-path ...') 
+                        'form: dataset1-path dataset2-path ...')
     parser.add_argument('--data_split',
                         type=str,
                         default='2,4,4',
@@ -208,121 +200,12 @@ def parse_args():
     ## Print loss
     parser.add_argument('--print_loss',
                         action='store_true',
-                        default=True,
                         help='Prints loss at each step.')
     parser = deepspeed.add_config_arguments(parser)
     args = parser.parse_args()
 
     return args
 
-# BUG
-def smart_tokenizer_and_embedding_resize(
-    special_tokens_dict: Dict,
-    tokenizer: transformers.PreTrainedTokenizer,
-    model: transformers.PreTrainedModel,
-):
-    """Resize tokenizer and embedding.
-
-    Note: This is the unoptimized version that may make your embedding size not be divisible by 64.
-    """
-    num_new_tokens = tokenizer.add_special_tokens(special_tokens_dict)
-    model.resize_token_embeddings(len(tokenizer))
-
-    if num_new_tokens > 0:
-        input_embeddings = model.get_input_embeddings().weight.data
-        output_embeddings = model.get_output_embeddings().weight.data
-
-        input_embeddings_avg = input_embeddings[:-num_new_tokens].mean(dim=0, keepdim=True)
-        output_embeddings_avg = output_embeddings[:-num_new_tokens].mean(dim=0, keepdim=True)
-
-        input_embeddings[-num_new_tokens:] = input_embeddings_avg
-        output_embeddings[-num_new_tokens:] = output_embeddings_avg
-
-def _tokenize_fn(strings: Sequence[str], tokenizer: transformers.PreTrainedTokenizer) -> Dict:
-    """Tokenize a list of strings."""
-    tokenized_list = [
-        tokenizer(
-            text,
-            return_tensors="pt",
-            padding="longest",
-            max_length=tokenizer.model_max_length,
-            truncation=True,
-        )
-        for text in strings
-    ]
-    input_ids = labels = [tokenized.input_ids[0] for tokenized in tokenized_list]
-    input_ids_lens = labels_lens = [
-        tokenized.input_ids.ne(tokenizer.pad_token_id).sum().item() for tokenized in tokenized_list
-    ]
-    return dict(
-        input_ids=input_ids,
-        labels=labels,
-        input_ids_lens=input_ids_lens,
-        labels_lens=labels_lens,
-    )
-
-def preprocess(
-    sources: Sequence[str],
-    targets: Sequence[str],
-    tokenizer: transformers.PreTrainedTokenizer,
-) -> Dict:
-    """Preprocess the data by tokenizing."""
-    examples = [s + t for s, t in zip(sources, targets)]
-    examples_tokenized, sources_tokenized = [_tokenize_fn(strings, tokenizer) for strings in (examples, sources)]
-    input_ids = examples_tokenized["input_ids"]
-    labels = copy.deepcopy(input_ids)
-    for label, source_len in zip(labels, sources_tokenized["input_ids_lens"]):
-        label[:source_len] = IGNORE_INDEX
-    return dict(input_ids=input_ids, labels=labels)
-
-class SupervisedDataset(Dataset):
-    """Dataset for supervised fine-tuning."""
-
-    def __init__(self, data_path: str, tokenizer: LlamaTokenizer):
-        super(SupervisedDataset, self).__init__()
-        logging.warning("Loading data...")
-        # list_data_dict = utils.jload(data_path)
-        dataset = ds.load_from_disk(data_path)
-
-        logging.warning("Formatting inputs...")
-        # prompt_input, prompt_no_input = PROMPT_DICT["prompt_input"], PROMPT_DICT["prompt_no_input"]
-        # sources = [
-        #     prompt_input.format_map(example) if example.get("input", "") != "" else prompt_no_input.format_map(example)
-        #     for example in list_data_dict
-        # ]
-        sources = [example['reaction'] for example in dataset]
-        # targets = [f"{example['output']}{tokenizer.eos_token}" for example in list_data_dict]
-        targets = [f"{example['condition']}{tokenizer.eos_token}" for example in dataset]
-
-        logging.warning("Tokenizing inputs... This may take some time...")
-        data_dict = preprocess(sources, targets, tokenizer)
-
-        self.input_ids = data_dict["input_ids"]
-        self.labels = data_dict["labels"]
-
-    def __len__(self):
-        return len(self.input_ids)
-
-    def __getitem__(self, i) -> Dict[str, torch.Tensor]:
-        return dict(input_ids=self.input_ids[i], labels=self.labels[i])
-
-@dataclass
-class DataCollatorForSupervisedDataset(object):
-    """Collate examples for supervised fine-tuning."""
-
-    tokenizer: transformers.PreTrainedTokenizer
-
-    def __call__(self, instances: Sequence[Dict]) -> Dict[str, torch.Tensor]:
-        input_ids, labels = tuple([instance[key] for instance in instances] for key in ("input_ids", "labels"))
-        input_ids = torch.nn.utils.rnn.pad_sequence(
-            input_ids, batch_first=True, padding_value=self.tokenizer.pad_token_id
-        )
-        labels = torch.nn.utils.rnn.pad_sequence(labels, batch_first=True, padding_value=IGNORE_INDEX)
-        return dict(
-            input_ids=input_ids,
-            labels=labels,
-            attention_mask=input_ids.ne(self.tokenizer.pad_token_id),
-        )
 
 def main():
     args = parse_args()
@@ -357,34 +240,16 @@ def main():
 
     # load_hf_tokenizer will get the correct tokenizer and set padding tokens based on the model family
     # TODO
-    # args.end_of_conversation_token = "<|endoftext|>"
-    # additional_special_tokens = args.end_of_conversation_token if args.add_eot_token else None
+    args.end_of_conversation_token = "<|endoftext|>"
+    additional_special_tokens = args.end_of_conversation_token if args.add_eot_token else None
     tokenizer = load_hf_tokenizer(args.model_name_or_path,
                                   fast_tokenizer=True,
-                                #   add_special_tokens=additional_special_tokens
-                                # BUG
-                                  )
-    special_tokens_dict = dict()
-    if tokenizer.pad_token is None:
-        special_tokens_dict["pad_token"] = DEFAULT_PAD_TOKEN
-    if tokenizer.eos_token is None:
-        special_tokens_dict["eos_token"] = DEFAULT_EOS_TOKEN
-    if tokenizer.bos_token is None:
-        special_tokens_dict["bos_token"] = DEFAULT_BOS_TOKEN
-    if tokenizer.unk_token is None:
-        special_tokens_dict["unk_token"] = DEFAULT_UNK_TOKEN
+                                  add_special_tokens=additional_special_tokens)
 
-    model = create_hf_model(AutoModelForCausalLM,
+    model = create_hf_gnn_model(
                             args.model_name_or_path,
                             tokenizer,
-                            ds_config,
                             dropout=args.dropout)
-    
-    smart_tokenizer_and_embedding_resize(
-        special_tokens_dict=special_tokens_dict,
-        tokenizer=tokenizer,
-        model=model,
-    )
 
     if args.compute_fp32_loss:
         print_rank_0(
@@ -398,9 +263,12 @@ def main():
         if args.only_optimize_lora:
             model = only_optimize_lora_parameters(model)
             model = make_model_gradient_checkpointing_compatible(model)
+            
+    print_trainable_parameters(model=model)
 
     # Prepare the data
     train_phase = 1
+    enable_graph_knowledge = True
     train_dataset, eval_dataset = create_prompt_dataset(
         args.local_rank,
         args.data_path,
@@ -410,7 +278,9 @@ def main():
         args.seed,
         tokenizer,
         args.max_seq_len,
-        sft_only_data_path=args.sft_only_data_path)
+        sft_only_data_path=args.sft_only_data_path,
+        enable_graph_knowledge=enable_graph_knowledge)
+    
     # DataLoaders creation:
     if args.local_rank == -1:
         train_sampler = RandomSampler(train_dataset)
@@ -418,12 +288,6 @@ def main():
     else:
         train_sampler = DistributedSampler(train_dataset)
         eval_sampler = DistributedSampler(eval_dataset)
-    
-    # BUG
-    train_dataset = SupervisedDataset(tokenizer=tokenizer, data_path=args.data_path)
-    # BUG
-    train_dataset, eval_dataset = train_dataset, train_dataset
-    data_collator = DataCollatorForSupervisedDataset(tokenizer=tokenizer)
     train_dataloader = DataLoader(train_dataset,
                                   collate_fn=data_collator,
                                   sampler=train_sampler,
@@ -482,14 +346,16 @@ def main():
 
     if args.gradient_checkpointing:
         model.gradient_checkpointing_enable()
-
+        
     # Train!
     print_rank_0("***** Running training *****", args.global_rank)
     print_rank_0(
         f"***** Evaluating perplexity, Epoch {0}/{args.num_train_epochs} *****",
         args.global_rank)
-    perplexity, eval_loss = evaluation(model, eval_dataloader)
-    print_rank_0(f"ppl: {perplexity}, loss: {eval_loss}", args.global_rank)
+    # TODO
+    # perplexity, eval_loss = evaluation(model, eval_dataloader)
+    # print_rank_0(f"ppl: {perplexity}, loss: {eval_loss}", args.global_rank)
+    # pdb.set_trace()
 
     for epoch in range(args.num_train_epochs):
         print_rank_0(
@@ -502,37 +368,15 @@ def main():
             batch = to_device(batch, device)
             outputs = model(**batch, use_cache=False)
             loss = outputs.loss
-            if args.print_loss:
-                print(
+            print(
                     f"Epoch: {epoch}, Step: {step}, Rank: {torch.distributed.get_rank()}, loss = {loss}"
                 )
             model.backward(loss)
-            # BUG
-            try:
-                model.step()
-            except Exception:
-                pass
-            # model.step()
+            model.step()
             end = time.time()
             if torch.distributed.get_rank() == 0:
                 print_throughput(model.model, args, end - start,
                                  args.global_rank)
-            
-            # BUG
-            if step % 2000 == 0:
-                if args.output_dir is not None:
-                    print_rank_0('saving the final model ...', args.global_rank)
-                    model = convert_lora_to_linear_layer(model)
-
-                    if args.global_rank == 0:
-                        save_hf_format(model, tokenizer, args)
-
-                    if args.zero_stage == 3:
-                        # For zero stage 3, each gpu only has a part of the model, so we need a special save function
-                        save_zero_three_model(model,
-                                            args.global_rank,
-                                            args.output_dir,
-                                            zero_stage=args.zero_stage)
 
         # Evaluate perplexity on the validation set.
         print_rank_0(

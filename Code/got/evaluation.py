@@ -19,8 +19,9 @@ import evaluate
 from evaluate.visualization import radar_plot
 
 from templates import *
+from gnn_llama import GnnLlamaForCausalLM
 
-logging.basicConfig(filename='./evaluation_kot_ft_0220.log',
+logging.basicConfig(filename='./evaluation_gnn_ft_0405.log',
                     filemode='a',
                     format='%(message)s',
                     level=logging.DEBUG
@@ -323,8 +324,9 @@ if __name__ == '__main__':
     print("###############################################################################")
     # prompt = data[data_index]['reaction']
     # prompt = GENERAL_CONDITION_TEMPLATE + IN_CONTEXT_LEARNING_CONDITION_TEMPLETE.format(data[data_index]['reaction'])
-    model = AutoModelForCausalLM.from_pretrained('/data/yanyuliang/Code/got/output_step1_llama2_7b_lora/', device_map='auto')
-    knowledge_model = AutoModelForCausalLM.from_pretrained('/data/yanyuliang/Code/got/hf_models/llama2/llama2-7b-chat/', device_map='auto')
+    model = GnnLlamaForCausalLM.from_pretrained('/data/yanyuliang/Code/got/output_step1_llama2_7b_lora_gnn_test/', device_map='auto')
+    print(model)
+    # knowledge_model = AutoModelForCausalLM.from_pretrained('/data/yanyuliang/Code/got/hf_models/llama2/llama2-7b-chat/', device_map='auto')
     tokenizer = AutoTokenizer.from_pretrained('/data/yanyuliang/Code/got/output_step1_llama2_7b_lora/')
     # tokenizer = AutoTokenizer.from_pretrained('/data/yanyuliang/Code/got/hf_models/llama2/llama2-7b-chat/')
     # model_inputs = tokenizer(prompt, return_tensors='pt').to("cuda")
@@ -333,8 +335,8 @@ if __name__ == '__main__':
     # print(output)
     
     print("###############################################################################")
-    reaction_prediction_evaluation("kot_ft",
-                                   model=model,
-                                   tokenizer=tokenizer,
-                                   knowledge_model=knowledge_model
-                                   )
+    # reaction_prediction_evaluation("kot_ft",
+    #                                model=model,
+    #                                tokenizer=tokenizer,
+    #                                knowledge_model=knowledge_model
+    #                                )

@@ -65,10 +65,20 @@ def get_raw_dataset(dataset_name, output_path, seed, local_rank):
     elif "lmqg/qag_jaquad" in dataset_name:
         return raw_datasets.LmqgQagjaquadDataset(output_path, seed, local_rank,
                                                  dataset_name)
+    # # BUG
+    # elif "chem_data/orderly_train" in dataset_name and "graph" not in dataset_name or "grover" not in dataset_name:
+    #     return raw_datasets.ChemOrderlyDataset(output_path, seed, local_rank,
+    #                                              dataset_name)
     # BUG
-    elif "chem_data/orderly_train" in dataset_name:
-        return raw_datasets.ChemOrderlyDataset(output_path, seed, local_rank,
+    elif "chem_data/orderly_train_with_graph_test" in dataset_name:
+        return raw_datasets.ChemOrderlyGnnDataset(output_path, seed, local_rank,
                                                  dataset_name)
+     
+    
+    # # TODO: modified by ljx, Grover
+    # elif "chem_data/orderly_train_with_graph_test" in dataset_name:
+    #     return raw_datasets.ChemOrderlyGroverDataset(output_path, seed, local_rank,
+    #                                              dataset_name)
     
     elif "local/jsonfile" in dataset_name:
         chat_path = os.path.abspath(
@@ -156,7 +166,8 @@ class PromptDataset(Dataset):
             return {
                 "input_ids": self.chosen_dataset[idx]["input_ids"],
                 "attention_mask": self.chosen_dataset[idx]["attention_mask"],
-                "labels": self.chosen_dataset[idx]["input_ids"]
+                "labels": self.chosen_dataset[idx]["input_ids"],
+                "graph": self.chosen_dataset[idx]["graph"]
             }
         elif self.train_phase == 2:
             return self.chosen_dataset[idx]["input_ids"], self.chosen_dataset[idx]["attention_mask"], \
@@ -167,15 +178,19 @@ class PromptDataset(Dataset):
 
 
 def create_dataset_split(current_dataset, raw_dataset, train_phase, tokenizer,
-                         end_of_conversation_token, max_seq_len):
+                         end_of_conversation_token, max_seq_len, enable_graph_knowledge):
     prompt_dataset = []
     chosen_dataset = []
     reject_dataset = []
     if train_phase == 1:
         for i, tmp_data in enumerate(current_dataset):
             # tokenize the text
-            chosen_sentence = raw_dataset.get_prompt_and_chosen(
+            if enable_graph_knowledge:
+                chosen_sentence, graph = raw_dataset.get_prompt_and_chosen_and_graph(tmp_data)
+            else:
+                chosen_sentence = raw_dataset.get_prompt_and_chosen(
                 tmp_data)  # the accept response
+                graph = ""
             if chosen_sentence is not None:
                 chosen_sentence += end_of_conversation_token
                 chosen_token = tokenizer(chosen_sentence,
@@ -187,6 +202,8 @@ def create_dataset_split(current_dataset, raw_dataset, train_phase, tokenizer,
                     0)
                 chosen_token["attention_mask"] = chosen_token[
                     "attention_mask"].squeeze(0)
+                chosen_token["graph"] = graph
+                
                 chosen_dataset.append(chosen_token)
         print(
             f'Creating dataset {raw_dataset.dataset_name_clean} for {train_phase=} size={len(chosen_dataset)}'
@@ -243,10 +260,91 @@ def create_dataset_split(current_dataset, raw_dataset, train_phase, tokenizer,
     return PromptDataset(prompt_dataset, chosen_dataset, reject_dataset,
                          tokenizer.pad_token_id, train_phase)
 
+#This is for GNN + Llama
+# def create_dataset_split_for_graphs(current_dataset, raw_dataset, train_phase, tokenizer,
+#                          end_of_conversation_token, max_seq_len):
+#     prompt_dataset = []
+#     chosen_dataset = []
+#     reject_dataset = []
+#     if train_phase == 1:
+#         for i, tmp_data in enumerate(current_dataset):
+#             # tokenize the text
+#             chosen_sentence, chosen_graphs = raw_dataset.get_prompt_and_chosen_and_graph(
+#                 tmp_data)  # the accept response
+#             if chosen_sentence is not None:
+#                 chosen_sentence += end_of_conversation_token
+#                 chosen_token = tokenizer(chosen_sentence,
+#                                          max_length=max_seq_len,
+#                                          padding="max_length",
+#                                          truncation=True,
+#                                          return_tensors="pt")
+#                 chosen_token["input_ids"] = chosen_token["input_ids"].squeeze(
+#                     0)
+#                 chosen_token["attention_mask"] = chosen_token[
+#                     "attention_mask"].squeeze(0)
+#                 chosen_token['graph_batch'] = chosen_graphs
+#                 chosen_dataset.append(chosen_token)
+#         print(
+#             f'Creating dataset {raw_dataset.dataset_name_clean} for {train_phase=} size={len(chosen_dataset)}'
+#         )
+
+#     elif train_phase == 2:
+#         for i, tmp_data in enumerate(current_dataset):
+#             # tokenize the text
+#             chosen_sentence, chosen_graphs = raw_dataset.get_prompt_and_chosen_and_graph(
+#                 tmp_data)  # the accept response
+#             reject_sentence, reject_graphs = raw_dataset.get_prompt_and_rejected_and_graph(
+#                 tmp_data)  # the reject response
+#             if chosen_sentence is not None and reject_sentence is not None:
+#                 chosen_sentence += end_of_conversation_token  # the accept response
+#                 reject_sentence += end_of_conversation_token
+#                 chosen_token = tokenizer(chosen_sentence,
+#                                          max_length=max_seq_len,
+#                                          padding="max_length",
+#                                          truncation=True,
+#                                          return_tensors="pt")
+#                 reject_token = tokenizer(reject_sentence,
+#                                          max_length=max_seq_len,
+#                                          padding="max_length",
+#                                          truncation=True,
+#                                          return_tensors="pt")
+#                 chosen_token["input_ids"] = chosen_token["input_ids"]
+#                 chosen_token["attention_mask"] = chosen_token["attention_mask"]
+#                 chosen_token['graph_batch'] = chosen_graphs
+#                 chosen_dataset.append(chosen_token)
+
+#                 reject_token["input_ids"] = reject_token["input_ids"]
+#                 reject_token["attention_mask"] = reject_token["attention_mask"]
+#                 reject_token['graph_batch'] = reject_graphs
+#                 reject_dataset.append(reject_token)
+#         print(
+#             f'Creating dataset {raw_dataset.dataset_name_clean} for {train_phase=} size={len(chosen_dataset)}'
+#         )
+
+#     elif train_phase == 3:
+#         filtered = 0
+#         for i, tmp_data in enumerate(current_dataset):
+#             # tokenize the text
+#             prompt, graphs = raw_dataset.get_prompt_and_graphs(tmp_data)
+#             if prompt is not None:
+#                 prompt_token = tokenizer(prompt, return_tensors="pt")
+#                 if prompt_token["input_ids"].size()[-1] <= max_seq_len:
+#                     for key_word in ["input_ids", "attention_mask"]:
+#                         prompt_token[key_word] = prompt_token[
+#                             key_word].squeeze(0).flip(0)
+#                     prompt_token["graph_batch"] = graphs
+#                     prompt_dataset.append(prompt_token)
+#                 else:
+#                     filtered += 1
+#         print(f'Creating dataset {raw_dataset.dataset_name_clean} '
+#               f'for {train_phase=} size={len(prompt_dataset)} {filtered=}')
+
+#     return PromptDataset(prompt_dataset, chosen_dataset, reject_dataset,
+#                          tokenizer.pad_token_id, train_phase)
 
 def create_dataset(local_rank, dataset_name, data_split, output_path,
                    train_phase, seed, tokenizer, end_of_conversation_token,
-                   max_seq_len, rebuild):
+                   max_seq_len, rebuild, enable_graph_knowledge):
     raw_dataset = get_raw_dataset(dataset_name, output_path, seed, local_rank)
     train_dataset = raw_dataset.get_train_data()
     train_index = get_raw_dataset_split_index(local_rank, output_path,
@@ -255,10 +353,15 @@ def create_dataset(local_rank, dataset_name, data_split, output_path,
                                               train_phase - 1,
                                               len(train_dataset), rebuild)
     train_dataset = Subset(train_dataset, train_index)
+    # if "graph" in dataset_name or "grover" in dataset_name:
+    #     train_dataset = create_dataset_split_for_graphs(train_dataset, raw_dataset,
+    #                                      train_phase, tokenizer,
+    #                                      end_of_conversation_token,
+    #                                      max_seq_len)
     train_dataset = create_dataset_split(train_dataset, raw_dataset,
-                                         train_phase, tokenizer,
-                                         end_of_conversation_token,
-                                         max_seq_len)
+                                        train_phase, tokenizer,
+                                        end_of_conversation_token,
+                                        max_seq_len, enable_graph_knowledge)
 
     eval_dataset = raw_dataset.get_eval_data()
     eval_index = get_raw_dataset_split_index(local_rank, output_path,
@@ -267,9 +370,15 @@ def create_dataset(local_rank, dataset_name, data_split, output_path,
                                              data_split, train_phase - 1,
                                              len(eval_dataset), rebuild)
     eval_dataset = Subset(eval_dataset, eval_index)
+    
+    # if "graph" in dataset_name or "grover" in dataset_name:
+    #     eval_dataset = create_dataset_split_for_graphs(eval_dataset, raw_dataset, train_phase,
+    #                                     tokenizer, end_of_conversation_token,
+    #                                     max_seq_len)
+    # else:
     eval_dataset = create_dataset_split(eval_dataset, raw_dataset, train_phase,
-                                        tokenizer, end_of_conversation_token,
-                                        max_seq_len)
+                                    tokenizer, end_of_conversation_token,
+                                    max_seq_len, enable_graph_knowledge)
     return train_dataset, eval_dataset
 
 
@@ -281,6 +390,7 @@ def create_prompt_dataset(local_rank,
                           seed,
                           tokenizer,
                           max_seq_len,
+                          enable_graph_knowledge,
                           end_of_conversation_token="<|endoftext|>",
                           sft_only_data_path=[],
                           reload=False):
@@ -316,7 +426,8 @@ def create_prompt_dataset(local_rank,
                 tokenizer,
                 end_of_conversation_token,
                 max_seq_len,
-                rebuild=reload)
+                rebuild=reload,
+                enable_graph_knowledge=enable_graph_knowledge)
         else:  # Blending datasets.
             train_datasets = []
             eval_datasets = []
@@ -533,3 +644,35 @@ class MiniDataset:
 
     def free(self):
         self.dataset = []
+
+def data_collator(features):
+    # if not isinstance(features[0], Mapping):
+    #     features = [vars(f) for f in features]
+    first = features[0]
+    batch = {}
+    
+    if "label" in first and first["label"] is not None:
+        label = first["label"].item() if isinstance(first["label"], torch.Tensor) else first["label"]
+        dtype = torch.long if isinstance(label, int) else torch.float
+        batch["labels"] = torch.tensor([f["label"] for f in features], dtype=dtype)
+    elif "label_ids" in first and first["label_ids"] is not None:
+        if isinstance(first["label_ids"], torch.Tensor):
+            batch["labels"] = torch.stack([f["label_ids"] for f in features])
+        else:
+            dtype = torch.long if isinstance(first["label_ids"][0], int) else torch.float
+            batch["labels"] = torch.tensor([f["label_ids"] for f in features], dtype=dtype)
+
+    # Handling of all other possible keys.
+    # Again, we will use the first element to figure out which key/values are not None for this model.
+    for k, v in first.items():
+        if k not in ("label", "label_ids") and v is not None and not isinstance(v, str):
+            if isinstance(v, torch.Tensor):
+                batch[k] = torch.stack([f[k] for f in features])
+            elif isinstance(v, np.ndarray):
+                batch[k] = torch.tensor(np.stack([f[k] for f in features]))
+            else:
+                # BUG
+                # batch[k] = torch.tensor([f[k] for f in features])
+                batch[k] = [f[k] for f in features]
+
+    return batch

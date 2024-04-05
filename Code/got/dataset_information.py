@@ -15,26 +15,9 @@ if __name__ == '__main__':
     #         count += 1
     # no_temperature_rate = count / len(train_dataset)
     # print(no_temperature_rate)
-
-    # 从文件加载 JSON 数据
-    with open('data.json', 'r') as f:
-        data = json.load(f)
-
-    # 将包含 \u 的字符串转换为正常字符
-    def decode_unicode(data):
-        if isinstance(data, dict):
-            return {decode_unicode(key): decode_unicode(value) for key, value in data.items()}
-        elif isinstance(data, list):
-            return [decode_unicode(item) for item in data]
-        elif isinstance(data, str):
-            return data.encode().decode('unicode_escape')
-        else:
-            return data
-
-    decoded_data = decode_unicode(data)
-
-    # 将转换后的数据保存到新的 JSON 文件中
-    with open('decoded_data.json', 'w') as f:
-        json.dump(decoded_data, f, indent=4)
-
-    print("Data saved to decoded_data.json.")
+    graph_data = pd.read_csv('./extract_data_using_knowledge/data_sample.csv')
+    print(graph_data.iloc[1200]['reactions'])
+    data_raw = Dataset.load_from_disk("./data/chem_data/orderly_train")
+    print(data_raw[1200])
+    print(len(graph_data))
+    print(len(data_raw))

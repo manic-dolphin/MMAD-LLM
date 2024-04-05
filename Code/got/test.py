@@ -8,7 +8,6 @@ from transformers import AutoTokenizer, AutoModelForCausalLM, GenerationConfig
 
 from templates import *
 from evaluation import hf_orderly_dataset
-from construct_gnn_data import *
 
 train, test = hf_orderly_dataset()
 raw_train_data = pd.read_parquet("./data/chem_data/orderly_condition_train.parquet")
@@ -175,5 +174,4 @@ if __name__ == '__main__':
     # GnnTest = GnnTest()
     # GnnTest.test_embedding()
     data = Dataset.load_from_disk("./data/chem_data/orderly_train")
-    print(data[0])
     # r = "CN(CC(F)c1ccc(F)cc1)S(=O)(=O)c1ccc(Br)s1. Functional group 1: Amine group (–NH2)"
