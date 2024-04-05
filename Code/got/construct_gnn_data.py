@@ -120,7 +120,6 @@ if __name__ == '__main__':
     print(adjacent_matrix)
     edge_index = convertAdjacentMtrix2EdgeIndex(adjacent_matrix=adjacent_matrix).to(model.device)
     print(edge_index)
-    print(edge_index.T)
     edge_attr = torch.ones(len(edge_index[0]), 2, dtype=torch.long).to(model.device)
     # gcnConv = GINConv(4096).to(model.device)
     # gcnConvOutput = gcnConv(embeddings, edge_index, edge_attr)
@@ -136,6 +135,15 @@ if __name__ == '__main__':
     trainable_params = 0
     all_param = 0
     for _, param in gnnLlama.named_parameters():
+        all_param += param.numel()
+        if param.requires_grad:
+            trainable_params += param.numel()
+    print(
+        f"trainable params: {trainable_params} || all params: {all_param} || trainable%: {100 * trainable_params / all_param}"
+    )
+    trainable_params = 0
+    all_param = 0
+    for _, param in model.named_parameters():
         all_param += param.numel()
         if param.requires_grad:
             trainable_params += param.numel()

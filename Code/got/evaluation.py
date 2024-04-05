@@ -18,8 +18,6 @@ from datasets import Dataset, load_dataset
 import evaluate
 from evaluate.visualization import radar_plot
 
-from reaction_condition_prediction import get_dataset
-# from get_models import *
 from templates import *
 
 logging.basicConfig(filename='./evaluation_kot_ft_0220.log',
@@ -48,17 +46,6 @@ def yield_prediction_evaluation():
     print(dataset)
     print(len(dataset))
     print(dataset[0])
-
-def uspto_dataset_split():
-    
-    # data_dir = '/data/yanyuliang/Code/got/data/chem_data/llama_chem_v1.json'
-    # dataset = load_dataset('json', data_files=data_dir, split='train')
-    dataset = get_dataset()
-    dataset = dataset.train_test_split(test_size=0.2, shuffle=True, seed=4096)
-    train_set = dataset['train']
-    test_set = dataset['test']
-    train_set.save_to_disk('/data/yanyuliang/Code/got/data/chem_data/uspto_train')
-    test_set.save_to_disk('/data/yanyuliang/Code/got/data/chem_data/uspto_test')
 
 def get_orderly_dataset() -> Dataset:
     
